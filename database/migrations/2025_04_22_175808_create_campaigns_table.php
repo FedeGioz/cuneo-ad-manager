@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
 
             $table->string('name');
+            $table->string('ad_title');
+            $table->string('ad_description');
             $table->enum('device', ['all', 'desktop', 'mobile']);
             $table->enum('ad_format', ['display', 'video']);
             $table->enum('ad_type', ['static_banner', 'video_banner']);
