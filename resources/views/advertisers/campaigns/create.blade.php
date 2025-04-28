@@ -1,5 +1,15 @@
 @extends('layouts.advertiser')
 
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 @section('content')
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -9,10 +19,9 @@
             </a>
         </div>
 
-        <form action="{{ route('advertisers.campaigns.showCreate') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('advertisers.campaigns.create') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <!-- Campaign Details -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">Dettagli campagna</h5>
@@ -30,12 +39,12 @@
                         <div class="col-md-6">
                             <label for="ad_category" class="form-label">Categoria</label>
                             <select class="form-select @error('ad_category') is-invalid @enderror" id="ad_category" name="ad_category" required>
-                                <option value="" selected disabled>Seleziona categoria</option>
-                                <option value="Ristoranti">Ristoranti</option>
-                                <option value="Negozi">Negozi</option>
-                                <option value="Servizi">Servizi</option>
-                                <option value="Eventi">Eventi</option>
-                                <option value="Altro">Altro</option>
+                                <option value="" disabled {{ old('ad_category') ? '' : 'selected' }}>Seleziona categoria</option>
+                                <option value="Ristoranti" {{ old('ad_category') == 'Ristoranti' ? 'selected' : '' }}>Ristoranti</option>
+                                <option value="Negozi" {{ old('ad_category') == 'Negozi' ? 'selected' : '' }}>Negozi</option>
+                                <option value="Servizi" {{ old('ad_category') == 'Servizi' ? 'selected' : '' }}>Servizi</option>
+                                <option value="Eventi" {{ old('ad_category') == 'Eventi' ? 'selected' : '' }}>Eventi</option>
+                                <option value="Altro" {{ old('ad_category') == 'Altro' ? 'selected' : '' }}>Altro</option>
                             </select>
                             @error('ad_category')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -272,7 +281,7 @@
                         <div class="col-md-12">
                             <label for="browser_language_targeting" class="form-label">Lingue browser</label>
                             <select class="form-select @error('browser_language_targeting') is-invalid @enderror" id="browser_language_targeting" name="browser_language_targeting">
-                                <option value="" selected>Tutte</option>
+                                <option value="all" selected>Tutte</option>
                                 <option value="it">Italiano</option>
                                 <option value="en">Inglese</option>
                                 <option value="fr">Francese</option>
@@ -315,6 +324,8 @@
                 <a href="{{ route('advertisers.index') }}" class="btn btn-outline-secondary px-4">Annulla</a>
                 <button type="submit" class="btn btn-primary px-5">Crea campagna</button>
             </div>
+
+            <input type="hidden" name="debug_mode" value="1">
         </form>
     </div>
 @endsection
@@ -396,12 +407,41 @@
             adSizeSelect.selectedIndex = 0;
         });
 
-        // Handle ad size selection
+        // In your existing JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // First, check your CSRF token is being sent
+            const form = document.querySelector('form');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            // Initialize the hidden fields on page load
+            const adSizeSelect = document.getElementById('ad_size');
+            if (adSizeSelect.value) {
+                const dimensions = adSizeSelect.value.split('x');
+                document.getElementById('ad_width').value = dimensions[0];
+                document.getElementById('ad_height').value = dimensions[1];
+            } else if (adSizeSelect.options.length > 1) {
+                // Select the first non-disabled option if none selected
+                adSizeSelect.selectedIndex = 1;
+                const dimensions = adSizeSelect.value.split('x');
+                document.getElementById('ad_width').value = dimensions[0];
+                document.getElementById('ad_height').value = dimensions[1];
+            }
+        });
+
+        // Keep the existing event listener for changes
         document.getElementById('ad_size').addEventListener('change', function() {
             if (this.value) {
                 const dimensions = this.value.split('x');
                 document.getElementById('ad_width').value = dimensions[0];
                 document.getElementById('ad_height').value = dimensions[1];
+            }
+        });
+
+        // Add to your JavaScript
+        document.getElementById('image').addEventListener('change', function() {
+            if (this.files[0] && this.files[0].size > 2 * 1024 * 1024) { // 2MB
+                alert('File too large. Maximum size is 2MB.');
+                this.value = '';
             }
         });
 

@@ -11,6 +11,7 @@ class Campaign extends Model
     protected $fillable = [
         'id',
         'name', // /
+        'status', // Active, Paused, Deleted
         'device', # All, Desktop, Mobile
         'ad_title',
         'ad_description',
@@ -36,6 +37,10 @@ class Campaign extends Model
         'target_url',
         'user_id',
         'creative_id'
+    ];
+
+    protected $casts = [
+        'keyword_targeting' => 'array'
     ];
 
     public function user(){

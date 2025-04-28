@@ -12,7 +12,8 @@ class Funding extends Model
         'id',
         'amount',
         'user_id',
-        'transaction_id',
+        'status',
+        'session_id'
     ];
 
     public function user()

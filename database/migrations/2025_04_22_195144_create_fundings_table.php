@@ -16,7 +16,8 @@ return new class extends Migration
 
             $table->decimal('amount', 10, 2);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('transaction_id')->unique();
+            $table->enum('status', ['unpaid', 'paid', 'failed'])->default('unpaid');
+            $table->string('session_id')->nullable();
 
             $table->timestamps();
         });
