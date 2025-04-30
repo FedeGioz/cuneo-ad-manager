@@ -21,7 +21,6 @@ class Campaign extends Model
         'ad_height', # (dimensioni sopra), (16 o 9 x video)
         'ad_category', # Ristoranti, Negozi etc. /
         'geo_targeting', # All, Country, Region, City --> prendere con GPS, se declina usare ip solo max country
-        'income_targeting', # Lista di quartieri ricchi e poveri se attivato GPS abbinato a provider (Vodafone etc ricchi. Kena, Lyca poveri)
         'isp_targeting',
         'ip_targeting', # Target su range di ip
         'wifi_cellular_targeting', # Wifi, Cellular

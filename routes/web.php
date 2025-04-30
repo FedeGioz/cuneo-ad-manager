@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdServeController;
 use App\Http\Controllers\AdvertiserController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\PaymentController;
@@ -24,3 +25,6 @@ Route::middleware([
     Route::get('/advertisers/topup/failed', [PaymentController::class, 'failed'])->name('advertisers.payment.failed');
 });
 
+Route::get('device-info', [AdServeController::class, 'device_info']);
+Route::get('serve-ad', [AdServeController::class, 'serve_ad']);
+Route::get('session-id', [AdServeController::class, 'get_device_info']);
