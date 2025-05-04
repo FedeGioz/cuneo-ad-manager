@@ -16,12 +16,11 @@
             </div>
         </div>
 
-        <!-- Stats Overview -->
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="card bg-light mb-3">
                     <div class="card-body text-center">
-                        <h3>{{ $campaigns->count() ?? 0 }}</h3>
+                        <h3>{{ $campaigns->where('status', 'active')->count() ?? 0 }}</h3>
                         <p class="mb-0">Campagne Attive</p>
                     </div>
                 </div>
@@ -45,14 +44,13 @@
             <div class="col-md-3">
                 <div class="card bg-light mb-3">
                     <div class="card-body text-center">
-                        <h3>{{ $conversionRate ?? '0%' }}</h3>
-                        <p class="mb-0">Tasso di Conversione</p>
+                        <h3>{{ $totalImpressions > 0 ? number_format(($totalClicks/$totalImpressions) * 100, 2) . '%' : '0%' }}</h3>
+                        <p class="mb-0">CTR</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Campaigns Table -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Le Tue Campagne</h5>
@@ -87,10 +85,12 @@
                                     <td>{{ $campaign->name }}</td>
                                     <td>{{ $campaign->ad_category }}</td>
                                     <td>
-                                        @if(now()->between($campaign->start_date, $campaign->end_date))
+                                        @if(now()->between($campaign->start_date, $campaign->end_date) and $campaign->status == 'active')
                                             <span class="badge bg-success">Attiva</span>
                                         @elseif(now()->lt($campaign->start_date))
                                             <span class="badge bg-warning text-dark">Programmata</span>
+                                        @elseif($campaign->status == 'paused')
+                                            <span class="badge bg-warning text-warning text-black">In Pausa</span>
                                         @else
                                             <span class="badge bg-secondary">Completata</span>
                                         @endif
@@ -101,19 +101,27 @@
                                     <td>{{ $campaign->clicks ?? 0 }}</td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
+                                            @if($campaign->status == 'paused')
+                                                <a href="{{ route('advertisers.campaigns.start', ['id' => $campaign->id]) }}" class="btn btn-outline-primary">
+                                                    <i class="fa fa-play"></i>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('advertisers.campaigns.pause', ['id' => $campaign->id]) }}" class="btn btn-outline-primary">
+                                                    <i class="fa fa-pause"></i>
+                                                </a>
+                                            @endif
                                             <a href="#" class="btn btn-outline-primary">
                                                 <i class="fa fa-eye"></i>
                                             </a>
                                             <a href="#" class="btn btn-outline-secondary">
                                                 <i class="fa fa-edit"></i>
                                             </a>
-                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCampaign{{ $campaign->id }}">
+                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCampaign">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </div>
 
-                                        <!-- Delete Modal -->
-                                        <div class="modal fade" id="deleteCampaign{{ $campaign->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal fade" id="deleteCampaign" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
@@ -125,11 +133,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                                                        <form action="#" method="POST">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger">Elimina</button>
-                                                        </form>
+                                                        <a href="{{ route('advertisers.campaigns.delete', ['id' => $campaign->id]) }}" class="btn btn-danger">Elimina</a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -153,25 +157,14 @@
             </div>
         </div>
 
-        <!-- Performance Analytics -->
         <div class="row">
-            <div class="col-md-6">
-                <div class="card mb-4">
+            <div class="col-md-12">
+                <div class="card mb-0">
                     <div class="card-header">
                         <h5 class="mb-0">Performance</h5>
                     </div>
                     <div class="card-body">
-                        <canvas id="performanceChart" width="400" height="300"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Targeting Geografico</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="map" style="height: 300px"></div>
+                        <canvas id="performanceChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -181,6 +174,12 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        .card-body:has(#performanceChart) {
+            height: 400px; /* Adjust this height as needed */
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -208,7 +207,8 @@
                 }]
             },
             options: {
-                responsive: true
+                responsive: true,
+                maintainAspectRatio: false
             }
         });
 

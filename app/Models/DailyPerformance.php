@@ -11,7 +11,6 @@ class DailyPerformance extends Model
         'id',
         'date',
         'impressions',
-        'views',
         'clicks',
         'conversions',
         'cost',

@@ -88,15 +88,6 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="frequency_capping" class="form-label">Limite impressioni per utente/giorno</label>
-                            <input type="number" min="0" step="1" class="form-control @error('frequency_capping') is-invalid @enderror" id="frequency_capping" name="frequency_capping" value="{{ old('frequency_capping', 3) }}">
-                            @error('frequency_capping')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="form-text">0 = nessun limite</div>
-                        </div>
-
-                        <div class="col-md-6">
                             <label for="start_date" class="form-label">Data inizio</label>
                             <input type="date" class="form-control @error('start_date') is-invalid @enderror" id="start_date" name="start_date" value="{{ old('start_date', date('Y-m-d')) }}" required>
                             @error('start_date')
@@ -123,7 +114,6 @@
                 </div>
             </div>
 
-            <!-- Ad Content -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">Contenuto annuncio</h5>
@@ -208,45 +198,21 @@
                 </div>
             </div>
 
-            <!-- Targeting -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">Targeting</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="form-label">Area geografica</label>
-                            <div id="map" style="height: 300px" class="mb-2 border rounded"></div>
-                            <input type="hidden" name="geo_targeting" id="geo_targeting" value="{{ old('geo_targeting', 'Cuneo') }}">
-                            <div class="form-text">Raggio predefinito: 10km dal centro di Cuneo</div>
+                    <div class="col-md-12">
+                        <label class="form-label">Area geografica</label>
+                        <div class="country-input-container">
+                            <input type="text" id="countryInput" class="form-control" placeholder="Inserisci città o paese" autocomplete="off">
+                            <input type="hidden" name="geo_targeting" id="geo_targeting" value="{{ old('geo_targeting', 'All') }}">
+                            <small class="form-text">Lascia vuoto per selezionare tutte le aree geografiche</small>
                         </div>
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="income_targeting" class="form-label">Fascia di reddito</label>
-                            <select class="form-select @error('income_targeting') is-invalid @enderror" id="income_targeting" name="income_targeting">
-                                <option value="all" selected>Tutti</option>
-                                <option value="rich">Alto reddito</option>
-                                <option value="poor">Basso reddito</option>
-                            </select>
-                            @error('income_targeting')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="wifi_cellular_targeting" class="form-label">Connessione</label>
-                            <select class="form-select @error('wifi_cellular_targeting') is-invalid @enderror" id="wifi_cellular_targeting" name="wifi_cellular_targeting">
-                                <option value="all" selected>Tutti</option>
-                                <option value="wifi">Solo Wi-Fi</option>
-                                <option value="cellular">Solo dati mobili</option>
-                            </select>
-                            @error('wifi_cellular_targeting')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
 
                         <div class="col-md-6">
                             <label for="os_targeting" class="form-label">Sistema operativo</label>
@@ -308,14 +274,6 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
-                        <div class="col-md-12">
-                            <label for="ip_targeting" class="form-label">Targeting IP (separati da virgola)</label>
-                            <input type="text" class="form-control @error('ip_targeting') is-invalid @enderror" id="ip_targeting" name="ip_targeting" value="{{ old('ip_targeting') }}" placeholder="192.168.1.1, 10.0.0.1/24">
-                            @error('ip_targeting')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
                     </div>
                 </div>
             </div>
@@ -341,24 +299,8 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBW8qMkWxMgPYng770Y6pyLu7ko3QVsQxI&libraries=places"></script>
     <script>
-        // Initialize map centered on Cuneo
-        const map = L.map('map').setView([44.3839, 7.5430], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-
-        // Add a marker for Cuneo center
-        const marker = L.marker([44.3839, 7.5430]).addTo(map)
-            .bindPopup('Centro di Cuneo').openPopup();
-
-        // Add a circle for targeting radius (10km)
-        const circle = L.circle([44.3839, 7.5430], {
-            color: 'blue',
-            fillColor: '#30f',
-            fillOpacity: 0.1,
-            radius: 10000
-        }).addTo(map);
 
         // Validate dates to ensure end date is after start date
         document.getElementById('start_date').addEventListener('change', function() {
@@ -447,5 +389,66 @@
 
         // Initialize format display
         document.getElementById('ad_format').dispatchEvent(new Event('change'));
+
+        // Replace the current country autocomplete script with Google Places API
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('countryInput');
+            const hiddenField = document.getElementById('geo_targeting');
+
+            // Set initial value if available
+            input.value = hiddenField.value !== 'All' ? hiddenField.value : '';
+
+            // Initialize Google Places Autocomplete
+            const autocomplete = new google.maps.places.Autocomplete(input, {
+                types: ['(regions)'], // This includes both cities and countries
+                fields: ['name', 'address_components'],
+                language: 'it' // You can change this to your preferred language
+            });
+
+            // Listen for place selection
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+
+                if (!place.name) {
+                    hiddenField.value = 'All';
+                    return;
+                }
+
+                // Look for the country component to get the country code
+                let countryCode = null;
+                if (place.address_components) {
+                    for (const component of place.address_components) {
+                        if (component.types.includes('country')) {
+                            countryCode = component.short_name; // This is the two-letter country code
+                            break;
+                        }
+                    }
+                }
+
+                // Set the country code if found, otherwise fallback to place name
+                hiddenField.value = countryCode || place.name;
+            });
+
+            // Add "All" option when clearing the field
+            input.addEventListener('input', function() {
+                if (!this.value.trim()) {
+                    hiddenField.value = 'All';
+                }
+            });
+
+            // Add an "All" option button below the input
+            const allOptionContainer = document.createElement('div');
+            allOptionContainer.className = 'mt-2';
+            const allOptionBtn = document.createElement('button');
+            allOptionBtn.type = 'button';
+            allOptionBtn.className = 'btn btn-sm btn-outline-secondary';
+            allOptionBtn.textContent = 'Target Everywhere (All)';
+            allOptionBtn.onclick = () => {
+                input.value = '';
+                hiddenField.value = 'All';
+            };
+            allOptionContainer.appendChild(allOptionBtn);
+            input.parentNode.appendChild(allOptionContainer);
+        });
     </script>
 @endpush

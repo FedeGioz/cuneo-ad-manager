@@ -6,7 +6,10 @@ use App\Http\Controllers\GuestController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [GuestController::class, 'index'])->name('guest.index');
+Route::get('/', [GuestController::class, 'index'])->name('home');
+Route::get('/category/{name}', [GuestController::class, 'category'])->name('category');
+Route::get('/category-ads', [GuestController::class, 'categoryAjax'])->name('category.ads');
+Route::get('/redirect', [GuestController::class, 'redirect'])->name('redirect');
 
 Route::middleware([
     'auth:sanctum',
@@ -26,5 +29,7 @@ Route::middleware([
 });
 
 Route::get('device-info', [AdServeController::class, 'device_info']);
-Route::get('serve-ad', [AdServeController::class, 'serve_ad']);
-Route::get('session-id', [AdServeController::class, 'get_device_info']);
+Route::get('match', [AdServeController::class, 'match']);
+Route::get('start-campaign', [AdvertiserController::class, 'startCampaign'])->name('advertisers.campaigns.start');
+Route::get('pause-campaign', [AdvertiserController::class, 'pauseCampaign'])->name('advertisers.campaigns.pause');
+Route::get('delete-campaign', [AdvertiserController::class, 'deleteCampaign'])->name('advertisers.campaigns.delete');

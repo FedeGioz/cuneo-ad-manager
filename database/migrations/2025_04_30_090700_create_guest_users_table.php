@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('country')->default('unknown');
             $table->string('city')->default('unknown');
             $table->string('isp')->default('unknown');
-            $table->enum('connection_type', ['cellular', 'wifi', 'unknown'])->default('unknown');
             $table->enum('device_os', ['Windows', 'Linux', 'Android', 'iOS', 'unknown'])->default('unknown');
             $table->enum('device_type', ['desktop', 'mobile', 'unknown'])->default('unknown');
             $table->string('device_browser')->default('unknown');

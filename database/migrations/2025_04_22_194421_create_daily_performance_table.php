@@ -16,7 +16,6 @@ return new class extends Migration
 
             $table->string('date');
             $table->integer('impressions');
-            $table->integer('views');
             $table->integer('clicks');
             $table->integer('conversions');
             $table->decimal('cost', 10, 2);

@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Campaign;
+use App\Models\DailyPerformance;
 use App\Models\GuestUser;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use ipinfo\ipinfo\IPinfo;
@@ -10,44 +13,43 @@ use Laravel\Jetstream\Agent;
 
 class AdServeController extends Controller
 {
-    // TODO: api che fetcha tutto dalla richiesta e restituisce l'ad da visualizzare, capire se registrare impression ora o client
+    public function device_info(Request $request){
+        error_log("ENTRATO");
+        if($request->session()->exists('guestUser')){
+            error_log("DENTRO IF");
+            return response()->json([],204);
+        }
+        $guestUser = DB::table('guest_users')->where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->first();
+        if(!$guestUser){
+            $agent = new Agent();
 
-    public function return_device_info(Request $request){
-        $connection_type = $request->input('connection_type');
+            $device_type = $agent->isDesktop() ? 'desktop' : ($agent->isMobile() || $agent->isTablet() ? 'mobile' : 'All');
 
-        $agent = new Agent();
-
-        $device_type = $agent->isDesktop() ? 'desktop' : ($agent->isMobile() || $agent->isTablet() ? 'mobile' : 'All');
-
-        # Problema con il metodo is per macOS
-        if($agent->platform() == 'OS X') $device_os = 'MacOS';
-        else{
-            if ($agent->is('Windows')) {
+            if (str_contains($agent->platform(), 'Windows')) {
                 $device_os = 'Windows';
-            } elseif ($agent->is('Linux')) {
+            } elseif (str_contains($agent->platform(), 'Linux')) {
                 $device_os = 'Linux';
-            } elseif ($agent->is('Android')) {
+            } elseif (str_contains($agent->platform(), 'Android')) {
                 $device_os = 'Android';
-            } elseif ($agent->is('iOS')) {
+            } elseif (str_contains($agent->platform(), 'iOS')) {
                 $device_os = 'iOS';
+            } elseif (str_contains($agent->platform(), 'OS X')) {
+                $device_os = 'MacOS';
             } else {
                 $device_os = 'All';
             }
-        }
 
-        $browser = $agent->browser();
+            $browser = $agent->browser();
 
-        $client = new IPinfo(env('IPINFO_API_KEY'));
-        $details = $client->getDetails($request->ip());
+            $client = new IPinfo(env('IPINFO_API_KEY'));
+            $details = $client->getDetails($request->ip());
 
-        if(!DB::table('guest_users')->where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->exists()){
-            GuestUser::create([
+            $guestUser = GuestUser::create([
                 'ip' => $details->ip,
                 'user_agent' => $request->header('User-Agent'),
                 'country' => $details->country,
                 'city' => $details->city,
-                'isp' => $details->asn,
-                'connection_type' => $connection_type,
+                'isp' => $details->org,
                 'device_os' => $device_os,
                 'device_type' => $device_type,
                 'device_browser' => $browser,
@@ -55,6 +57,117 @@ class AdServeController extends Controller
             ]);
         }
 
-        return response()->json(GuestUser::find());
+        $request->session()->put('guestUser', $guestUser);
+
+        return response()->json(["status" => "created"], 201);
+    }
+
+    public function match(Request $request){
+        $guestUser = $request->session()->get('guestUser') ??
+            GuestUser::where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->first();
+
+        if(!$guestUser){
+            return response()->json(['message' => 'No guest user found'], 404);
+        }
+
+        $campaigns = Campaign::where('status', 'active')
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            # Device matching
+            ->where(function($query) use ($guestUser) {
+                $query->where('device', $guestUser->device_type)
+                    ->orWhere('device', 'all');
+            })
+            # Geo Targeting
+            ->where(function($query) use ($guestUser) {
+                $query->where('geo_targeting', $guestUser->country)
+                    ->orWhere('geo_targeting', $guestUser->city)
+                    ->orWhere('geo_targeting', 'all');
+            })
+            ->where(function($query) use ($guestUser) {
+                $query->whereRaw("? LIKE CONCAT('%', isp_targeting, '%')", [$guestUser->isp])
+                    ->orWhere('isp_targeting', 'all');
+            })
+            ->where(function($query) use ($guestUser) {
+                $query->where('os_targeting', $guestUser->device_os)
+                    ->orWhere('os_targeting', 'all');
+            })
+            ->where(function($query) use ($guestUser) {
+                $query->where('browser_targeting', $guestUser->device_browser)
+                    ->orWhere('browser_targeting', 'all');
+            })
+            ->where(function($query) use ($guestUser) {
+                $query->where('browser_language_targeting', $guestUser->device_language)
+                    ->orWhere('browser_language_targeting', 'all');
+            })
+            ->where(function($query) use ($guestUser) {
+                if (!empty($guestUser->keywords)) {
+                    $keywords = json_decode($guestUser->keywords, true);
+
+                    $query->where(function($subquery) use ($keywords) {
+                        foreach ($keywords as $keyword) {
+                            $subquery->orWhereJsonContains('keyword_targeting', $keyword);
+                        }
+                    });
+                } else {
+                    $query->whereJsonContains('keyword_targeting', 'all');
+                }
+            })
+            ->where(function($query) use ($request) {
+                if($request->input('category')){
+                    $query->where('ad_category', $request->input('category'));
+                }
+            })
+            ->orderByDesc('max_bid')
+            ->get();
+
+        $availableCampaigns = [];
+
+        foreach ($campaigns as $campaign) {
+            $campaignOwner = $campaign->user;
+
+            if ($campaignOwner && $campaignOwner->balance >= $campaign->max_bid) {
+                DailyPerformance::where('campaign_id', $campaign->id)
+                    ->where('date', now()->format('Y-m-d'))
+                    ->increment('impressions');
+
+                $availableCampaigns[] = [
+                    'id' => $campaign->id,
+                    'name' => $campaign->name,
+                    'ad_title' => $campaign->ad_title,
+                    'ad_description' => $campaign->ad_description,
+                    'ad_format' => $campaign->ad_format,
+                    'ad_type' => $campaign->ad_type,
+                    'ad_width' => $campaign->ad_width,
+                    'ad_height' => $campaign->ad_height,
+                    'target_url' => $campaign->target_url,
+                    'creative_id' => $campaign->creative_id
+                ];
+            }
+        }
+
+        if (empty($availableCampaigns)) {
+            return response()->json(['message' => 'No matching campaign found'], 404);
+        }
+
+        return response()->json($availableCampaigns);
+    }
+
+    public function redirect(Request $request){
+        $campaignId = $request->get('campaignId');
+        $campaign = Campaign::find($campaignId);
+
+        if (!$campaign) {
+            return response()->json(['error' => 'Campaign not found'], 404);
+        }
+
+        DailyPerformance::where('campaign_id', $campaignId)
+            ->where('date', now()->format('Y-m-d'))
+            ->increment('clicks');
+
+        User::where('id', $campaign->user_id)
+            ->decrement('balance', $campaign->max_bid);
+
+        return redirect()->away($campaign->target_url);
     }
 }

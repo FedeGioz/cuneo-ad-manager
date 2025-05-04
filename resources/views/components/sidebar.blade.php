@@ -1,4 +1,3 @@
-<!-- Create file: resources/views/components/bootstrap-sidebar.blade.php -->
 <div class="sidebar bg-dark text-white" id="sidebar-wrapper">
     <div class="sidebar-header d-flex align-items-center p-3">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="164.0995 137.3778 168.479 223.7025" width="40.479px" height="50.702px">
@@ -20,7 +19,6 @@
 
     <div class="profile-section p-3 border-bottom border-secondary">
         <div class="d-flex align-items-center mb-3">
-            <img src="{{ Auth::user()->profile_photo_url }}" class="rounded-circle me-2" width="40" height="40">
             <div>
                 <h6 class="mb-0">{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</h6>
                 <small class="text-muted">{{ Auth::user()->company_name }}</small>

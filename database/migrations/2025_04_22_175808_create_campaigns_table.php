@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('name');
-            $table->enum('status', ['active', 'paused', 'deleted']);
+            $table->enum('status', ['active', 'paused', 'deleted'])->default('paused');
             $table->string('ad_title');
             $table->string('ad_description');
             $table->enum('device', ['all', 'desktop', 'mobile']);
@@ -26,8 +26,6 @@ return new class extends Migration
             $table->string('ad_category');
             $table->string('geo_targeting')->nullable();
             $table->string('isp_targeting')->nullable();
-            $table->string('ip_targeting')->nullable();
-            $table->enum('wifi_cellular_targeting', ['wifi', 'cellular', 'all']);
             $table->enum('os_targeting', ['android', 'ios', 'windows', 'mac', 'linux', 'all']);
             $table->enum('browser_targeting', ['chrome', 'firefox', 'safari', 'opera', 'edge', 'all']);
             $table->string('browser_language_targeting')->nullable();
@@ -35,11 +33,10 @@ return new class extends Migration
             $table->decimal('max_bid', 10, 2);
             $table->date('start_date');
             $table->date('end_date');
-            $table->integer('frequency_capping')->nullable();
             $table->decimal('daily_budget', 10, 2)->nullable();
             $table->string('target_url');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-
+            $table->foreignId('creative_id')->nullable()->constrained('creatives')->onDelete('set null');
             $table->timestamps();
         });
     }

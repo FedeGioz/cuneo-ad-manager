@@ -14,7 +14,6 @@ class GuestUser extends Model
         'country',
         'city',
         'isp',
-        'connection_type',
         'device_os',
         'device_type',
         'device_browser',

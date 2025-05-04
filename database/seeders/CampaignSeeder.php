@@ -1,0 +1,160 @@
+<?php
+
+namespace Database\Seeders;
+
+use Carbon\Carbon;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class CampaignSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $users = DB::table('users')->pluck('id')->toArray();
+        $creatives = DB::table('creatives')->pluck('id')->toArray();
+
+        $campaigns = [
+            [
+                'name' => 'Promozione Estate 2023',
+                'status' => 'active',
+                'ad_title' => 'Offerta Speciale Vacanze!',
+                'ad_description' => 'Scopri le nostre offerte esclusive per l\'estate. Prenota ora e risparmia fino al 30%!',
+                'device' => 'all',
+                'ad_format' => 'display',
+                'ad_type' => 'static_banner',
+                'ad_width' => 300,
+                'ad_height' => 250,
+                'ad_category' => 'Viaggi e Turismo',
+                'geo_targeting' => 'Roma',
+                'isp_targeting' => 'All',
+                'os_targeting' => 'all',
+                'browser_targeting' => 'all',
+                'browser_language_targeting' => 'it',
+                'keyword_targeting' => json_encode(['vacanze', 'estate', 'mare', 'offerte']),
+                'max_bid' => 1.50,
+                'start_date' => Carbon::now(),
+                'end_date' => Carbon::now()->addMonth(3),
+                'daily_budget' => 50.00,
+                'target_url' => 'https://www.viaggiesclusive.it/promozioni',
+                'user_id' => $users[array_rand($users)],
+                'creative_id' => $creatives[array_rand($creatives)],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Saldi Invernali',
+                'status' => 'paused',
+                'ad_title' => 'Sconti fino al 70%',
+                'ad_description' => 'Approfitta subito degli sconti invernali su tutti i prodotti. Solo fino ad esaurimento scorte!',
+                'device' => 'desktop',
+                'ad_format' => 'display',
+                'ad_type' => 'static_banner',
+                'ad_width' => 728,
+                'ad_height' => 90,
+                'ad_category' => 'Abbigliamento',
+                'geo_targeting' => 'Milano',
+                'isp_targeting' => 'Telecom Italia',
+                'os_targeting' => 'windows',
+                'browser_targeting' => 'chrome',
+                'browser_language_targeting' => 'it',
+                'keyword_targeting' => json_encode(['saldi', 'sconti', 'moda', 'inverno']),
+                'max_bid' => 1.25,
+                'start_date' => Carbon::now()->addMonth(2),
+                'end_date' => Carbon::now()->addMonth(4),
+                'daily_budget' => 35.00,
+                'target_url' => 'https://www.modaitaliana.it/saldi-invernali',
+                'user_id' => $users[array_rand($users)],
+                'creative_id' => $creatives[array_rand($creatives)],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Nuova App Mobile',
+                'status' => 'active',
+                'ad_title' => 'Scarica la Nostra App',
+                'ad_description' => 'La nuova app che rivoluzionerà il tuo modo di fare shopping. Scarica ora e ricevi 10€ di sconto!',
+                'device' => 'mobile',
+                'ad_format' => 'display',
+                'ad_type' => 'static_banner',
+                'ad_width' => 320,
+                'ad_height' => 50,
+                'ad_category' => 'Tecnologia',
+                'geo_targeting' => 'All',
+                'isp_targeting' => 'All',
+                'os_targeting' => 'android',
+                'browser_targeting' => 'all',
+                'browser_language_targeting' => 'it',
+                'keyword_targeting' => json_encode(['app', 'mobile', 'shopping', 'sconto']),
+                'max_bid' => 2.00,
+                'start_date' => Carbon::now()->subDay(),
+                'end_date' => Carbon::now()->addMonth(6),
+                'daily_budget' => 80.00,
+                'target_url' => 'https://play.google.com/store/apps/details?id=it.shoppingapp',
+                'user_id' => $users[array_rand($users)],
+                'creative_id' => $creatives[array_rand($creatives)],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Corso di Cucina Italiana',
+                'status' => 'active',
+                'ad_title' => 'Impara dai Migliori Chef',
+                'ad_description' => 'Corso di cucina italiana online con chef stellati. Iscriviti ora con il 20% di sconto!',
+                'device' => 'all',
+                'ad_format' => 'video',
+                'ad_type' => 'video_banner',
+                'ad_width' => 640,
+                'ad_height' => 360,
+                'ad_category' => 'Formazione',
+                'geo_targeting' => 'Napoli',
+                'isp_targeting' => 'Vodafone',
+                'os_targeting' => 'all',
+                'browser_targeting' => 'all',
+                'browser_language_targeting' => 'it',
+                'keyword_targeting' => json_encode(['cucina', 'chef', 'corso', 'italiano', 'pasta']),
+                'max_bid' => 1.80,
+                'start_date' => Carbon::now(),
+                'end_date' => Carbon::now()->addMonth(2),
+                'daily_budget' => 60.00,
+                'target_url' => 'https://www.corsicucina.it/iscrizione',
+                'user_id' => $users[array_rand($users)],
+                'creative_id' => $creatives[array_rand($creatives)],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Promozione Black Friday',
+                'status' => 'paused',
+                'ad_title' => 'Black Friday: Sconti Pazzi!',
+                'ad_description' => 'Solo 24 ore di sconti incredibili. Fino al 80% su tutti i prodotti elettronici!',
+                'device' => 'all',
+                'ad_format' => 'display',
+                'ad_type' => 'static_banner',
+                'ad_width' => 160,
+                'ad_height' => 600,
+                'ad_category' => 'Elettronica',
+                'geo_targeting' => 'Torino',
+                'isp_targeting' => 'All',
+                'os_targeting' => 'all',
+                'browser_targeting' => 'all',
+                'browser_language_targeting' => 'All',
+                'keyword_targeting' => json_encode(['blackfriday', 'sconti', 'elettronica', 'offerte']),
+                'max_bid' => 3.00,
+                'start_date' => Carbon::parse('2023-11-24'),
+                'end_date' => Carbon::parse('2023-11-25'),
+                'daily_budget' => 200.00,
+                'target_url' => 'https://www.elettronicaitaliana.it/blackfriday',
+                'user_id' => $users[array_rand($users)],
+                'creative_id' => $creatives[array_rand($creatives)],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ];
+
+        DB::table('campaigns')->insert($campaigns);
+    }
+}
