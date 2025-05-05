@@ -19,10 +19,6 @@ return new class extends Migration
             $table->string('ad_title');
             $table->string('ad_description');
             $table->enum('device', ['all', 'desktop', 'mobile']);
-            $table->enum('ad_format', ['display', 'video']);
-            $table->enum('ad_type', ['static_banner', 'video_banner']);
-            $table->integer('ad_width');
-            $table->integer('ad_height');
             $table->enum('ad_category', ['ristoranti', 'tecnologia', 'immobiliare', 'bar', 'aziende', 'supermercati', 'scuole', 'negozi', 'intrattenimento', 'altro']);
             $table->string('geo_targeting')->nullable();
             $table->string('isp_targeting')->nullable();

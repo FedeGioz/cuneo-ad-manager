@@ -15,10 +15,6 @@ class Campaign extends Model
         'device', # All, Desktop, Mobile
         'ad_title',
         'ad_description',
-        'ad_format', # Display, Video
-        'ad_type', # Static Banner, Video Banner (solo x display banner)
-        'ad_width', # 950x250, 315x300, 300x250, 468x60, 305x99, 320x480, 300x100, (16 o 9 x video)
-        'ad_height', # (dimensioni sopra), (16 o 9 x video)
         'ad_category', # Ristoranti, Negozi etc. /
         'geo_targeting', # All, Country, Region, City --> prendere con GPS, se declina usare ip solo max country
         'isp_targeting',

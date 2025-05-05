@@ -134,12 +134,13 @@ class AdServeController extends Controller
                     'name' => $campaign->name,
                     'ad_title' => $campaign->ad_title,
                     'ad_description' => $campaign->ad_description,
+                    'ad_category' => $campaign->ad_category,
                     'ad_format' => $campaign->ad_format,
                     'ad_type' => $campaign->ad_type,
                     'ad_width' => $campaign->ad_width,
                     'ad_height' => $campaign->ad_height,
                     'target_url' => $campaign->target_url,
-                    'creative_id' => $campaign->creative_id
+                    'creative_path' => $campaign->creative->path
                 ];
             }
         }

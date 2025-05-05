@@ -35,26 +35,25 @@
             <h3>Annunci in Evidenza</h3>
             <hr>
         </div>
+    </div>
 
-        <div class="row annunci-in-evidenza">
-            @forelse ($featuredAds as $ad)
-                <div class="col-md-4">
-                    <div class="card ad-card">
-                        <img src="{{ '/storage/creatives/' . $ad['creative_id'] }}" class="card-img-top" alt="{{ $ad['ad_title'] }}">
-                        <div class="card-body">
-                            <span class="badge bg-primary mb-2">{{ ucfirst($ad['ad_category']) }}</span>
-                            <h5 class="card-title">{{ $ad['ad_title'] }}</h5>
-                            <p class="card-text">{{ $ad['ad_description'] }}</p>
-                            <a href="/redirect?campaignId={{ $ad['id'] }}" class="btn btn-sm btn-outline-primary">Maggiori informazioni</a>
-                        </div>
+    <div class="row annunci-in-evidenza">
+        @if(count($featuredAds) > 0)
+            @foreach($featuredAds as $ad)
+                <div class="card" style="width: 18rem;">
+                    <img src="{{ asset('storage/'.$ad['creative_path']) }}" class="card-img-top" alt="...">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ $ad['ad_title'] }}</h5>
+                        <p class="card-text">{{ $ad['ad_description'] }}</p>
+                        <a href="{{ route('redirect', ['campaignId' => $ad['id']]) }}" class="btn btn-primary">Scopri di più</a>
                     </div>
                 </div>
-            @empty
-                <div class="col-12">
-                    <p class="text-center">Nessun annuncio in evidenza al momento.</p>
-                </div>
-            @endforelse
-        </div>
+            @endforeach
+        @else
+            <div class="col-12">
+                <p class="text-center">Nessun annuncio in evidenza al momento.</p>
+            </div>
+        @endif
     </div>
 
     <div class="row mb-4">

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [GuestController::class, 'index'])->name('home');
 Route::get('/category/{name}', [GuestController::class, 'category'])->name('category');
 Route::get('/category-ads', [GuestController::class, 'categoryAjax'])->name('category.ads');
-Route::get('/redirect', [GuestController::class, 'redirect'])->name('redirect');
+Route::get('/redirect', [AdServeController::class, 'redirect'])->name('redirect');
 
 Route::middleware([
     'auth:sanctum',
