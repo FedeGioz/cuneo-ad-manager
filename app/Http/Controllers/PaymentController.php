@@ -21,8 +21,6 @@ class PaymentController extends Controller
     public function checkout(Request $request){
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        error_log("AMOUNT: ".$request->input('amount'));
-
         try {
             $session = Session::create([
                 'payment_method_types' => ['card'],
@@ -51,7 +49,6 @@ class PaymentController extends Controller
 
             return redirect($session->url, 303);
         } catch (Exception $e) {
-            error_log($e->getMessage());
             return back()->withErrors(['error' => 'Unable to create payment session: ' . $e->getMessage()]);
         }
     }

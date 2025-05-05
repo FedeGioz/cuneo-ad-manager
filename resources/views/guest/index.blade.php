@@ -8,7 +8,7 @@
             <div class="row">
                 <div class="col-lg-8 mx-auto text-center">
                     <h1>Benvenuti su CuneoPubblicità</h1>
-                    <p class="lead">La tua piattaforma di annunci locali per le aziende e i servizi della città di Cuneo</p>
+                    <p class="lead">La piattaforma di annunci locali per le aziende e i servizi della città di Cuneo</p>
                     <div class="mt-4">
                         <a href="#" class="btn btn-light btn-lg me-2">Sfoglia Annunci</a>
                         <a href="#" class="btn btn-outline-light btn-lg">Categorie</a>

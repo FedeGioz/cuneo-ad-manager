@@ -14,10 +14,6 @@ use Laravel\Jetstream\Agent;
 class GuestController extends Controller
 {
     public function index(Request $request){
-        $categories = ['ristoranti', 'negozi'];
 
-        return view('guest.index', [
-            'categories' => $categories
-        ]);
     }
 }

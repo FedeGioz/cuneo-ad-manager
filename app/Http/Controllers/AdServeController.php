@@ -14,9 +14,7 @@ use Laravel\Jetstream\Agent;
 class AdServeController extends Controller
 {
     public function device_info(Request $request){
-        error_log("ENTRATO");
         if($request->session()->exists('guestUser')){
-            error_log("DENTRO IF");
             return response()->json([],204);
         }
         $guestUser = DB::table('guest_users')->where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->first();

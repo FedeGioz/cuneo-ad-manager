@@ -23,7 +23,7 @@ return new class extends Migration
             $table->enum('ad_type', ['static_banner', 'video_banner']);
             $table->integer('ad_width');
             $table->integer('ad_height');
-            $table->string('ad_category');
+            $table->enum('ad_category', ['ristoranti', 'tecnologia', 'immobiliare', 'bar', 'aziende', 'supermercati', 'scuole', 'negozi', 'intrattenimento', 'altro']);
             $table->string('geo_targeting')->nullable();
             $table->string('isp_targeting')->nullable();
             $table->enum('os_targeting', ['android', 'ios', 'windows', 'mac', 'linux', 'all']);
