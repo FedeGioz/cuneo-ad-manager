@@ -8,58 +8,21 @@
     </x-slot>
 
     <x-slot name="form">
-        <!-- Profile Photo -->
-        @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-            <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-4">
-                <!-- Profile Photo File Input -->
-                <input type="file" id="photo" class="hidden"
-                            wire:model.live="photo"
-                            x-ref="photo"
-                            x-on:change="
-                                    photoName = $refs.photo.files[0].name;
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        photoPreview = e.target.result;
-                                    };
-                                    reader.readAsDataURL($refs.photo.files[0]);
-                            " />
 
-                <x-label for="photo" value="{{ __('Photo') }}" />
-
-                <!-- Current Profile Photo -->
-                <div class="mt-2" x-show="! photoPreview">
-                    <img src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}" class="rounded-full size-20 object-cover">
-                </div>
-
-                <!-- New Profile Photo Preview -->
-                <div class="mt-2" x-show="photoPreview" style="display: none;">
-                    <span class="block rounded-full size-20 bg-cover bg-no-repeat bg-center"
-                          x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
-                    </span>
-                </div>
-
-                <x-secondary-button class="mt-2 me-2" type="button" x-on:click.prevent="$refs.photo.click()">
-                    {{ __('Select A New Photo') }}
-                </x-secondary-button>
-
-                @if ($this->user->profile_photo_path)
-                    <x-secondary-button type="button" class="mt-2" wire:click="deleteProfilePhoto">
-                        {{ __('Remove Photo') }}
-                    </x-secondary-button>
-                @endif
-
-                <x-input-error for="photo" class="mt-2" />
-            </div>
-        @endif
 
         <!-- Name -->
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="name" value="{{ __('Name') }}" />
-            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" />
-            <x-input-error for="name" class="mt-2" />
+            <x-label for="first_name" value="{{ __('First Name') }}" />
+            <x-input id="first_name" type="text" class="mt-1 block w-full" wire:model="state.first_name" required autocomplete="first_name" />
+            <x-input-error for="first_name" class="mt-2" />
         </div>
 
-        <!-- Email -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="last_name" value="{{ __('Last Name') }}" />
+            <x-input id="last_name" type="text" class="mt-1 block w-full" wire:model="state.last_name" required autocomplete="last_name" />
+            <x-input-error for="last_name" class="mt-2" />
+        </div>
+
         <div class="col-span-6 sm:col-span-4">
             <x-label for="email" value="{{ __('Email') }}" />
             <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required autocomplete="username" />
@@ -81,6 +44,41 @@
                 @endif
             @endif
         </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="dob" value="{{ __('Date Of Birth') }}" />
+            <x-input id="dob" type="date" disabled readonly class="mt-1 block w-full" wire:model="state.dob" autocomplete="dob"/>
+        </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="company_name" value="{{ __('Company Name') }}" />
+            <x-input id="company_name" type="text" class="mt-1 block w-full" wire:model="state.company_name" required autocomplete="company_name" />
+            <x-input-error for="company_name" class="mt-2" />
+        </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="address" value="{{ __('Address') }}" />
+            <x-input id="address" type="text" class="mt-1 block w-full" wire:model="state.address" required autocomplete="address" />
+            <x-input-error for="address" class="mt-2" />
+        </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="country" value="{{ __('Country') }}" />
+            <x-country-selector wire:model="state.country" required autocomplete="country"/>
+            <x-input-error for="country" class="mt-2" />
+        </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="city" value="{{ __('City') }}" />
+            <x-input id="city" type="text" class="mt-1 block w-full" wire:model="state.city" required autocomplete="city" />
+            <x-input-error for="city" class="mt-2" />
+        </div>
+
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="zip_code" value="{{ __('Zip Code') }}" />
+            <x-input id="zip_code" type="text" class="mt-1 block w-full" wire:model="state.zip_code" required autocomplete="zip_code" />
+            <x-input-error for="zip_code" class="mt-2" />
+        </div>
     </x-slot>
 
     <x-slot name="actions">
@@ -88,7 +86,7 @@
             {{ __('Saved.') }}
         </x-action-message>
 
-        <x-button wire:loading.attr="disabled" wire:target="photo">
+        <x-button wire:loading.attr="disabled">
             {{ __('Save') }}
         </x-button>
     </x-slot>

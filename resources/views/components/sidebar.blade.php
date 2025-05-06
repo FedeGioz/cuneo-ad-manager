@@ -54,7 +54,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('advertisers.settings') }}" class="nav-link {{ request()->routeIs('advertisers.settings') ? 'active text-dark' : 'text-white' }}">                <i class="fas fa-cog me-2"></i>
+            <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.show') ? 'active text-dark' : 'text-white' }}">                <i class="fas fa-cog me-2"></i>
                 Impostazioni
             </a>
         </li>

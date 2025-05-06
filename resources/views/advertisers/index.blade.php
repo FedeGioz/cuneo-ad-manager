@@ -156,20 +156,6 @@
                 @endif
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card mb-0">
-                    <div class="card-header">
-                        <h5 class="mb-0">Performance</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('styles')

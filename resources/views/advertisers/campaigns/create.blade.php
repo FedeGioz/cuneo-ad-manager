@@ -125,53 +125,6 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="ad_format" class="form-label">Formato annuncio</label>
-                            <select class="form-select @error('ad_format') is-invalid @enderror" id="ad_format" name="ad_format" required>
-                                <option value="display" selected>Display</option>
-                                <option value="video">Video</option>
-                            </select>
-                            @error('ad_format')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-6 format-dependent display-format">
-                            <label for="ad_type" class="form-label">Tipo banner</label>
-                            <select class="form-select @error('ad_type') is-invalid @enderror" id="ad_type" name="ad_type" required>
-                                <option value="static_banner" selected>Banner statico</option>
-                                <option value="video_banner">Banner video</option>
-                            </select>
-                            @error('ad_type')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-md-12">
-                            <label for="ad_size" class="form-label">Dimensioni</label>
-                            <select class="form-select @error('ad_size') is-invalid @enderror" id="ad_size" required>
-                                <option value="" selected disabled>Seleziona dimensione</option>
-                                <optgroup label="Display" class="format-group display-format">
-                                    <option value="950x250">950 x 250 - Billboard</option>
-                                    <option value="315x300">315 x 300 - Square</option>
-                                    <option value="300x250">300 x 250 - Medium rectangle</option>
-                                    <option value="468x60">468 x 60 - Banner</option>
-                                    <option value="305x99">305 x 99 - Mobile leaderboard</option>
-                                    <option value="320x480">320 x 480 - Mobile interstitial</option>
-                                    <option value="300x100">300 x 100 - 3:1 Rectangle</option>
-                                </optgroup>
-                                <optgroup label="Video" class="format-group video-format">
-                                    <option value="16x9">16:9 - Widescreen</option>
-                                    <option value="1x1">1:1 - Square</option>
-                                </optgroup>
-                            </select>
-                            <input type="hidden" name="ad_width" id="ad_width" value="{{ old('ad_width') }}">
-                            <input type="hidden" name="ad_height" id="ad_height" value="{{ old('ad_height') }}">
-                            @error('ad_width')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
                         <div class="col-md-12">
                             <label for="ad_title" class="form-label">Titolo</label>
                             <input type="text" class="form-control @error('ad_title') is-invalid @enderror" id="ad_title" name="ad_title" value="{{ old('ad_title') }}" required maxlength="60">
@@ -191,10 +144,9 @@
                         </div>
 
                         <div class="col-md-12">
-                            <label for="image" class="form-label">Immagine/Video</label>
+                            <label for="image" class="form-label">Immagine</label>
                             <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image">
                             <div class="form-text format-dependent display-format">Formato consigliato: 1200x628px, max 2MB</div>
-                            <div class="form-text format-dependent video-format d-none">Formati supportati: MP4, max 50MB, durata max 30 secondi</div>
                             @error('image')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

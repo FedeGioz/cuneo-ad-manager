@@ -19,7 +19,7 @@ Route::middleware([
     Route::get('/dashboard', [AdvertiserController::class, 'index'])->name('advertisers.index');
     Route::get('/advertisers/create', [AdvertiserController::class, 'showCreateCampaign'])->name('advertisers.campaigns.showCreate');
     Route::post('/advertisers/create', [AdvertiserController::class, 'createCampaign'])->name('advertisers.campaigns.create');
-    Route::get('/advertisers/statistics', [AdvertiserController::class, 'statistics'])->name('advertisers.statistics');
+    Route::get('/advertisers/statistics', [AdvertiserController::class, 'showStatistics'])->name('advertisers.statistics');
     Route::get('/advertisers/payments', [PaymentController::class, 'index'])->name('advertisers.payments.list');
     Route::get('/advertisers/settings', [AdvertiserController::class, 'settings'])->name('advertisers.settings');
     Route::get('/advertisers/topup', [PaymentController::class, 'index'])->name('advertisers.payment.form');
