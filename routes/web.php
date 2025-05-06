@@ -26,6 +26,7 @@ Route::middleware([
     Route::post('/advertisers/topup/checkout', [PaymentController::class, 'checkout'])->name('advertisers.payment.checkout');
     Route::get('/advertisers/topup/success', [PaymentController::class, 'success'])->name('advertisers.payment.success');
     Route::get('/advertisers/topup/failed', [PaymentController::class, 'failed'])->name('advertisers.payment.failed');
+    Route::put('/advertisers/settings/update', [AdvertiserController::class, 'updateSettings'])->name('advertisers.settings.update');
 });
 
 Route::get('device-info', [AdServeController::class, 'device_info']);

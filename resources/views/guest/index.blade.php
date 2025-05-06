@@ -67,9 +67,8 @@
                 <a href="#" class="category-link text-decoration-none" data-category="{{ $category }}">
                     <div class="card text-center py-3">
                         <div class="card-body">
-                            <i class="fa fa-{{ $category === 'ristorazione' ? 'utensils' :
-                                            ($category === 'shopping' ? 'shopping-bag' :
-                                            ($category === 'servizi' ? 'briefcase' : 'home')) }} mb-3 fs-3"></i>
+                            <i class="fa fa-{{ $category == 'ristorazione' ? 'utensils'
+                                            : $category == '' }} mb-3 fs-3"></i>
                             <h5 class="card-title">{{ ucfirst($category) }}</h5>
                         </div>
                     </div>

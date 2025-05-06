@@ -15,19 +15,15 @@ class GuestController extends Controller
 {
     public function index(Request $request)
     {
-        // Get categories for filtering
         $categories = Campaign::where('status', 'active')
             ->distinct()
             ->pluck('ad_category')
             ->filter();
 
-        // Instantiate AdServeController
         $adServeController = new AdServeController();
 
-        // Call the match method to get featured ads
         $matchResponse = $adServeController->match($request);
 
-        // Process the response data - with improved handling
         $featuredAds = [];
         if ($matchResponse->status() == 200) {
             $responseData = $matchResponse->getData(true);

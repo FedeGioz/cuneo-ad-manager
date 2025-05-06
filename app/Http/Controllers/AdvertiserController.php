@@ -6,8 +6,8 @@ use App\Jobs\CreateDailyPerformances;
 use App\Models\Campaign;
 use App\Models\Creative;
 use App\Models\DailyPerformance;
-use App\Models\Funding;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdvertiserController extends Controller
 {
@@ -146,4 +146,45 @@ class AdvertiserController extends Controller
         return redirect($request->url());
     }
 
+    public function settings(Request $request){
+        return view('advertisers.settings');
+    }
+
+    public function updateSettings(Request $request){
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'company_name' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'zip_code' => 'nullable|numeric|max:20',
+            'country' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
+            'current_password' => 'nullable|required_with:password',
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        $user->first_name = $validated['first_name'];
+        $user->last_name = $validated['last_name'];
+        $user->company_name = $validated['company_name'];
+        $user->address = $validated['address'];
+        $user->city = $validated['city'];
+        $user->zip_code = $validated['zip_code'];
+        $user->country = $validated['country'];
+        $user->email = $validated['email'];
+
+        if ($request->filled('password')) {
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'La password attuale non è corretta.']);
+            }
+
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return redirect()->route('advertisers.settings')->with('success', 'Le impostazioni sono state aggiornate con successo.');
+    }
 }
