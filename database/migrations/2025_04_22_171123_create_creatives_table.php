@@ -14,10 +14,7 @@ return new class extends Migration
         Schema::create('creatives', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('width');
-            $table->integer('height');
             $table->string('path');
-            $table->enum('type', ['image', 'video', 'gif']);
             $table->foreignId('user_id')->constrained('users', 'id')->onDelete('cascade');
             $table->timestamps();
         });

@@ -34,11 +34,7 @@ class AdvertiserController extends Controller
             'device' => 'required|string',
             'ad_title' => 'required|string|max:255',
             'ad_description' => 'required|string|max:255',
-            'ad_format' => 'required|string|max:50',
-            'ad_type' => 'required|string|max:50',
             'target_url' => 'required|url|max:255',
-            'ad_width' => 'required|integer',
-            'ad_height' => 'required|integer',
             'ad_category' => 'required|string|max:50',
             'geo_targeting' => 'required|string|max:50',
             'os_targeting' => 'required|string',
@@ -53,17 +49,14 @@ class AdvertiserController extends Controller
             'image' => 'required|file|max:2048|mimes:jpeg,png,jpg,gif,mp4',
         ]);
 
-        $keywordArray = null;
         if ($request->filled('keyword_targeting')) {
             $keywordArray = array_map('trim', explode(',', $request->keyword_targeting));
         }
 
-        $ispArray = null;
         if ($request->filled('isp_targeting')) {
             $ispArray = array_map('trim', explode(',', $request->isp_targeting));
         }
 
-        $creative = null;
         if ($request->hasFile('image')) {
             $file = $request->file('image');
             $fileName = time() . '_' . $file->getClientOriginalName();
@@ -72,15 +65,10 @@ class AdvertiserController extends Controller
 
             $creative = Creative::create([
                 'name' => $fileName,
-                'width' => $request->ad_width,
-                'height' => $request->ad_height,
                 'path' => $path,
-                'type' => $request->ad_format === 'video' ? 'video' : 'image',
                 'user_id' => auth()->id()
             ]);
         }
-
-        // TODO: mettere ad_category come enum nella migration
 
         $campaign = Campaign::create([
             'name' => $validated['name'],
@@ -88,12 +76,8 @@ class AdvertiserController extends Controller
             'device' => strtolower($validated['device']),
             'ad_title' => $validated['ad_title'],
             'ad_description' => $validated['ad_description'],
-            'ad_format' => strtolower($validated['ad_format']),
-            'ad_type' => strtolower($validated['ad_type']),
-            'ad_width' => $validated['ad_width'],
-            'ad_height' => $validated['ad_height'],
             'ad_category' => strtolower($validated['ad_category']),
-            'geo_targeting' => strtoupper($validated['geo_targeting']) ?? 'all',
+            'geo_targeting' => $validated['geo_targeting'] ?? 'all',
             'isp_targeting' => $ispArray ?? 'all',
             'os_targeting' => $validated['os_targeting'] ?? 'all',
             'browser_targeting' => $validated['browser_targeting'] ?? 'all',
@@ -189,6 +173,9 @@ class AdvertiserController extends Controller
     }
 
     public function showStatistics(Request $request){
-        return view('advertisers.statistics');
+        $campaigns = Campaign::where('user_id', $request->user()->id)->orderBy('created_at', 'desc')->get();
+//      $campaignId = $request->get('campaignId');
+
+        return view('advertisers.statistics', ['campaigns' => $campaigns, 'data' => $data ?? null]);
     }
 }

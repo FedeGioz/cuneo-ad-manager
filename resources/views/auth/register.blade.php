@@ -42,7 +42,6 @@
             <div class="mt-4">
                 <x-label for="country" value="{{ __('Country') }}" />
                 <x-country-selector/>
-{{--                TODO: fixare getting del selettore --}}
             </div>
 
             <div class="mt-4">

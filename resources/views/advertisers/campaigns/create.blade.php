@@ -40,16 +40,16 @@
                             <label for="ad_category" class="form-label">Categoria</label>
                             <select class="form-select @error('ad_category') is-invalid @enderror" id="ad_category" name="ad_category" required>
                                 <option value="" disabled {{ old('ad_category') ? '' : 'selected' }}>Seleziona categoria</option>
-                                <option value="Ristoranti" {{ old('ad_category') == 'ristoranti' ? 'selected' : '' }}>Ristoranti</option>
-                                <option value="Negozi" {{ old('ad_category') == 'tecnologia' ? 'selected' : '' }}>Tecnologia</option>
-                                <option value="Servizi" {{ old('ad_category') == 'immobiliare' ? 'selected' : '' }}>Immobiliare</option>
-                                <option value="Eventi" {{ old('ad_category') == 'bar' ? 'selected' : '' }}>Bar</option>
-                                <option value="Aziende" {{ old('ad_category') == 'aziende' ? 'selected' : '' }}>Aziende</option>
-                                <option value="Supermercati" {{ old('ad_category') == 'supermercati' ? 'selected' : '' }}>Supermercati</option>
-                                <option value="Scuole" {{ old('ad_category') == 'scuole' ? 'selected' : '' }}>Scuole</option>
-                                <option value="Negozi" {{ old('ad_category') == 'negozi' ? 'selected' : '' }}>Negozi</option>
-                                <option value="Intrattenimento" {{ old('ad_category') == 'intrattenimento' ? 'selected' : '' }}>Intrattenimento</option>
-                                <option value="Altro" {{ old('ad_category') == 'altro' ? 'selected' : '' }}>Altro</option>
+                                <option value="ristoranti" {{ old('ad_category') == 'ristoranti' ? 'selected' : '' }}>Ristoranti</option>
+                                <option value="tecnologia" {{ old('ad_category') == 'tecnologia' ? 'selected' : '' }}>Tecnologia</option>
+                                <option value="immobiliare" {{ old('ad_category') == 'immobiliare' ? 'selected' : '' }}>Immobiliare</option>
+                                <option value="bar" {{ old('ad_category') == 'bar' ? 'selected' : '' }}>Bar</option>
+                                <option value="aziende" {{ old('ad_category') == 'aziende' ? 'selected' : '' }}>Aziende</option>
+                                <option value="supermercati" {{ old('ad_category') == 'supermercati' ? 'selected' : '' }}>Supermercati</option>
+                                <option value="scuole" {{ old('ad_category') == 'scuole' ? 'selected' : '' }}>Scuole</option>
+                                <option value="negozi" {{ old('ad_category') == 'negozi' ? 'selected' : '' }}>Negozi</option>
+                                <option value="intrattenimento" {{ old('ad_category') == 'intrattenimento' ? 'selected' : '' }}>Intrattenimento</option>
+                                <option value="altro" {{ old('ad_category') == 'altro' ? 'selected' : '' }}>Altro</option>
                             </select>
                             @error('ad_category')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -164,7 +164,7 @@
                         <label class="form-label">Area geografica</label>
                         <div class="country-input-container">
                             <input type="text" id="countryInput" class="form-control" placeholder="Inserisci città o paese" autocomplete="off">
-                            <input type="hidden" name="geo_targeting" id="geo_targeting" value="{{ old('geo_targeting', 'All') }}">
+                            <input type="hidden" name="geo_targeting" id="geo_targeting" value="{{ old('geo_targeting', 'all') }}">
                             <small class="form-text">Lascia vuoto per selezionare tutte le aree geografiche</small>
                         </div>
                     </div>
@@ -256,7 +256,7 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBW8qMkWxMgPYng770Y6pyLu7ko3QVsQxI&libraries=places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{env('PLACES_API_KEY')}}&libraries=places"></script>
     <script>
 
         // Validate dates to ensure end date is after start date

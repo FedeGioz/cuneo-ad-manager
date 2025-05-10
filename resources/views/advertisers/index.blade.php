@@ -83,7 +83,7 @@
                             @foreach($campaigns as $campaign)
                                 <tr>
                                     <td>{{ $campaign->name }}</td>
-                                    <td>{{ $campaign->ad_category }}</td>
+                                    <td>{{ ucfirst($campaign->ad_category) }}</td>
                                     <td>
                                         @if(now()->between($campaign->start_date, $campaign->end_date) and $campaign->status == 'active')
                                             <span class="badge bg-success">Attiva</span>
