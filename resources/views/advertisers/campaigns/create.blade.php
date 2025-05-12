@@ -1,3 +1,4 @@
+{{-- resources/views/advertisers/campaigns/create.blade.php --}}
 @extends('layouts.advertiser')
 
 @if ($errors->any())
@@ -13,14 +14,23 @@
 @section('content')
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">Crea nuova campagna</h1>
+            <h1 class="h3 mb-0">{{ isset($campaign) ? 'Modifica campagna' : 'Crea nuova campagna' }}</h1>
             <a href="{{ route('advertisers.index') }}" class="btn btn-outline-secondary">
                 <i class="fa fa-arrow-left me-1"></i> Indietro
             </a>
         </div>
 
-        <form action="{{ route('advertisers.campaigns.create') }}" method="POST" enctype="multipart/form-data">
+        @php
+            $formAction = isset($campaign)
+                ? route('advertisers.campaigns.update', $campaign->id)
+                : route('advertisers.campaigns.create');
+        @endphp
+
+        <form action="{{ $formAction }}" method="POST" enctype="multipart/form-data">
             @csrf
+            @if(isset($campaign))
+                @method('PUT')
+            @endif
 
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-white">
@@ -30,7 +40,8 @@
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label for="name" class="form-label">Nome campagna</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name"
+                                   value="{{ old('name', isset($campaign) ? $campaign->name : '') }}" required>
                             @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -39,17 +50,16 @@
                         <div class="col-md-6">
                             <label for="ad_category" class="form-label">Categoria</label>
                             <select class="form-select @error('ad_category') is-invalid @enderror" id="ad_category" name="ad_category" required>
-                                <option value="" disabled {{ old('ad_category') ? '' : 'selected' }}>Seleziona categoria</option>
-                                <option value="ristoranti" {{ old('ad_category') == 'ristoranti' ? 'selected' : '' }}>Ristoranti</option>
-                                <option value="tecnologia" {{ old('ad_category') == 'tecnologia' ? 'selected' : '' }}>Tecnologia</option>
-                                <option value="immobiliare" {{ old('ad_category') == 'immobiliare' ? 'selected' : '' }}>Immobiliare</option>
-                                <option value="bar" {{ old('ad_category') == 'bar' ? 'selected' : '' }}>Bar</option>
-                                <option value="aziende" {{ old('ad_category') == 'aziende' ? 'selected' : '' }}>Aziende</option>
-                                <option value="supermercati" {{ old('ad_category') == 'supermercati' ? 'selected' : '' }}>Supermercati</option>
-                                <option value="scuole" {{ old('ad_category') == 'scuole' ? 'selected' : '' }}>Scuole</option>
-                                <option value="negozi" {{ old('ad_category') == 'negozi' ? 'selected' : '' }}>Negozi</option>
-                                <option value="intrattenimento" {{ old('ad_category') == 'intrattenimento' ? 'selected' : '' }}>Intrattenimento</option>
-                                <option value="altro" {{ old('ad_category') == 'altro' ? 'selected' : '' }}>Altro</option>
+                                <option value="" disabled>Seleziona categoria</option>
+                                @php
+                                    $categories = ['ristoranti', 'tecnologia', 'immobiliare', 'bar', 'aziende', 'supermercati', 'scuole', 'negozi', 'intrattenimento', 'altro'];
+                                    $selectedCategory = old('ad_category', isset($campaign) ? $campaign->ad_category : '');
+                                @endphp
+                                @foreach($categories as $category)
+                                    <option value="{{ $category }}" {{ $selectedCategory == $category ? 'selected' : '' }}>
+                                        {{ ucfirst($category) }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('ad_category')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -59,9 +69,15 @@
                         <div class="col-md-6">
                             <label for="device" class="form-label">Dispositivo</label>
                             <select class="form-select @error('device') is-invalid @enderror" id="device" name="device" required>
-                                <option value="all" selected>Tutti</option>
-                                <option value="desktop">Desktop</option>
-                                <option value="mobile">Mobile</option>
+                                @php
+                                    $devices = ['all' => 'Tutti', 'desktop' => 'Desktop', 'mobile' => 'Mobile'];
+                                    $selectedDevice = old('device', isset($campaign) ? $campaign->device : 'all');
+                                @endphp
+                                @foreach($devices as $value => $label)
+                                    <option value="{{ $value }}" {{ $selectedDevice == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('device')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -72,7 +88,9 @@
                             <label for="daily_budget" class="form-label">Budget giornaliero (€)</label>
                             <div class="input-group">
                                 <span class="input-group-text">€</span>
-                                <input type="number" step="0.01" min="5" class="form-control @error('daily_budget') is-invalid @enderror" id="daily_budget" name="daily_budget" value="{{ old('daily_budget', 10) }}" required>
+                                <input type="number" step="0.01" min="5" class="form-control @error('daily_budget') is-invalid @enderror"
+                                       id="daily_budget" name="daily_budget"
+                                       value="{{ old('daily_budget', isset($campaign) ? $campaign->daily_budget : 5) }}" required>
                                 @error('daily_budget')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -84,7 +102,9 @@
                             <label for="max_bid" class="form-label">Offerta massima (€)</label>
                             <div class="input-group">
                                 <span class="input-group-text">€</span>
-                                <input type="number" step="0.01" min="0.01" class="form-control @error('max_bid') is-invalid @enderror" id="max_bid" name="max_bid" value="{{ old('max_bid', 0.20) }}" required>
+                                <input type="number" step="0.01" min="0.01" class="form-control @error('max_bid') is-invalid @enderror"
+                                       id="max_bid" name="max_bid"
+                                       value="{{ old('max_bid', isset($campaign) ? $campaign->max_bid : 0.05) }}" required>
                                 @error('max_bid')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -94,7 +114,8 @@
 
                         <div class="col-md-6">
                             <label for="start_date" class="form-label">Data inizio</label>
-                            <input type="date" class="form-control @error('start_date') is-invalid @enderror" id="start_date" name="start_date" value="{{ old('start_date', date('Y-m-d')) }}" required>
+                            <input type="date" class="form-control @error('start_date') is-invalid @enderror" id="start_date" name="start_date"
+                                   value="{{ old('start_date', isset($campaign) ? (is_string($campaign->start_date) ? $campaign->start_date : $campaign->start_date->format('Y-m-d')) : date('Y-m-d')) }}" required>
                             @error('start_date')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -102,7 +123,12 @@
 
                         <div class="col-md-6">
                             <label for="end_date" class="form-label">Data fine</label>
-                            <input type="date" class="form-control @error('end_date') is-invalid @enderror" id="end_date" name="end_date" value="{{ old('end_date', date('Y-m-d', strtotime('+7 days'))) }}" required>
+                            @php
+                                $defaultEndDate = date('Y-m-d', strtotime('+7 days'));
+                                $endDateValue = old('end_date', isset($campaign) ? (is_string($campaign->end_date) ? $campaign->end_date : $campaign->end_date->format('Y-m-d')) : $defaultEndDate);
+                            @endphp
+                            <input type="date" class="form-control @error('end_date') is-invalid @enderror" id="end_date" name="end_date"
+                                   value="{{ $endDateValue }}" required>
                             @error('end_date')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -110,7 +136,9 @@
 
                         <div class="col-md-12">
                             <label for="target_url" class="form-label">URL di destinazione</label>
-                            <input type="url" class="form-control @error('target_url') is-invalid @enderror" id="target_url" name="target_url" value="{{ old('target_url') }}" placeholder="https://www.esempio.it" required>
+                            <input type="url" class="form-control @error('target_url') is-invalid @enderror" id="target_url" name="target_url"
+                                   value="{{ old('target_url', isset($campaign) ? $campaign->target_url : '') }}"
+                                   placeholder="https://www.esempio.it" required>
                             @error('target_url')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -127,7 +155,8 @@
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label for="ad_title" class="form-label">Titolo</label>
-                            <input type="text" class="form-control @error('ad_title') is-invalid @enderror" id="ad_title" name="ad_title" value="{{ old('ad_title') }}" required maxlength="60">
+                            <input type="text" class="form-control @error('ad_title') is-invalid @enderror" id="ad_title" name="ad_title"
+                                   value="{{ old('ad_title', isset($campaign) ? $campaign->ad_title : '') }}" required maxlength="60">
                             <div class="form-text">Massimo 60 caratteri</div>
                             @error('ad_title')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -136,7 +165,8 @@
 
                         <div class="col-md-12">
                             <label for="ad_description" class="form-label">Descrizione</label>
-                            <textarea class="form-control @error('ad_description') is-invalid @enderror" id="ad_description" name="ad_description" rows="3" maxlength="150" required>{{ old('ad_description') }}</textarea>
+                            <textarea class="form-control @error('ad_description') is-invalid @enderror" id="ad_description" name="ad_description" rows="3"
+                                      maxlength="150" required>{{ old('ad_description', isset($campaign) ? $campaign->ad_description : '') }}</textarea>
                             <div class="form-text">Massimo 150 caratteri</div>
                             @error('ad_description')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -145,7 +175,14 @@
 
                         <div class="col-md-12">
                             <label for="image" class="form-label">Immagine</label>
-                            <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image">
+                            @if(isset($campaign) && $campaign->creative)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/'.$campaign->creative->path) }}" alt="Current creative" class="img-thumbnail" style="max-height: 200px">
+                                    <p class="form-text">Immagine attuale. Carica una nuova immagine per sostituirla.</p>
+                                </div>
+                            @endif
+                            <input type="file" class="form-control @error('image') is-invalid @enderror" id="image" name="image"
+                                {{ isset($campaign) ? '' : 'required' }}>
                             <div class="form-text format-dependent display-format">Formato consigliato: 1200x628px, max 2MB</div>
                             @error('image')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -163,23 +200,30 @@
                     <div class="col-md-12">
                         <label class="form-label">Area geografica</label>
                         <div class="country-input-container">
-                            <input type="text" id="countryInput" class="form-control" placeholder="Inserisci città o paese" autocomplete="off">
-                            <input type="hidden" name="geo_targeting" id="geo_targeting" value="{{ old('geo_targeting', 'all') }}">
+                            @php
+                                $geoTargeting = isset($campaign) && $campaign->geo_targeting != 'all' ? $campaign->geo_targeting : '';
+                            @endphp
+                            <input type="text" id="countryInput" class="form-control" placeholder="Inserisci città o paese"
+                                   autocomplete="off" value="{{ $geoTargeting }}">
+                            <input type="hidden" name="geo_targeting" id="geo_targeting"
+                                   value="{{ old('geo_targeting', isset($campaign) ? $campaign->geo_targeting : 'all') }}">
                             <small class="form-text">Lascia vuoto per selezionare tutte le aree geografiche</small>
                         </div>
                     </div>
 
                     <div class="row g-3">
-
                         <div class="col-md-6">
                             <label for="os_targeting" class="form-label">Sistema operativo</label>
                             <select class="form-select @error('os_targeting') is-invalid @enderror" id="os_targeting" name="os_targeting">
-                                <option value="all" selected>Tutti</option>
-                                <option value="android">Android</option>
-                                <option value="ios">iOS</option>
-                                <option value="windows">Windows</option>
-                                <option value="mac">Mac</option>
-                                <option value="linux">Linux</option>
+                                @php
+                                    $osSystems = ['all' => 'Tutti', 'android' => 'Android', 'ios' => 'iOS', 'windows' => 'Windows', 'mac' => 'Mac', 'linux' => 'Linux'];
+                                    $selectedOs = old('os_targeting', isset($campaign) ? $campaign->os_targeting : 'all');
+                                @endphp
+                                @foreach($osSystems as $value => $label)
+                                    <option value="{{ $value }}" {{ $selectedOs == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('os_targeting')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -189,12 +233,15 @@
                         <div class="col-md-6">
                             <label for="browser_targeting" class="form-label">Browser</label>
                             <select class="form-select @error('browser_targeting') is-invalid @enderror" id="browser_targeting" name="browser_targeting">
-                                <option value="all" selected>Tutti</option>
-                                <option value="chrome">Chrome</option>
-                                <option value="firefox">Firefox</option>
-                                <option value="safari">Safari</option>
-                                <option value="opera">Opera</option>
-                                <option value="edge">Edge</option>
+                                @php
+                                    $browsers = ['all' => 'Tutti', 'chrome' => 'Chrome', 'firefox' => 'Firefox', 'safari' => 'Safari', 'opera' => 'Opera', 'edge' => 'Edge'];
+                                    $selectedBrowser = old('browser_targeting', isset($campaign) ? $campaign->browser_targeting : 'all');
+                                @endphp
+                                @foreach($browsers as $value => $label)
+                                    <option value="{{ $value }}" {{ $selectedBrowser == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('browser_targeting')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -204,12 +251,15 @@
                         <div class="col-md-12">
                             <label for="browser_language_targeting" class="form-label">Lingue browser</label>
                             <select class="form-select @error('browser_language_targeting') is-invalid @enderror" id="browser_language_targeting" name="browser_language_targeting">
-                                <option value="all" selected>Tutte</option>
-                                <option value="it">Italiano</option>
-                                <option value="en">Inglese</option>
-                                <option value="fr">Francese</option>
-                                <option value="es">Spagnolo</option>
-                                <option value="de">Tedesco</option>
+                                @php
+                                    $languages = ['all' => 'Tutte', 'it' => 'Italiano', 'en' => 'Inglese', 'fr' => 'Francese', 'es' => 'Spagnolo', 'de' => 'Tedesco'];
+                                    $selectedLanguage = old('browser_language_targeting', isset($campaign) ? $campaign->browser_language_targeting : 'all');
+                                @endphp
+                                @foreach($languages as $value => $label)
+                                    <option value="{{ $value }}" {{ $selectedLanguage == $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('browser_language_targeting')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -218,7 +268,15 @@
 
                         <div class="col-md-12">
                             <label for="keyword_targeting" class="form-label">Parole chiave (separate da virgola)</label>
-                            <input type="text" class="form-control @error('keyword_targeting') is-invalid @enderror" id="keyword_targeting" name="keyword_targeting" value="{{ old('keyword_targeting') }}" placeholder="sport, musica, tecnologia">
+                            @php
+                                $keywords = isset($campaign) && is_array($campaign->keyword_targeting) ?
+                                    implode(', ', $campaign->keyword_targeting) :
+                                    (isset($campaign) ? $campaign->keyword_targeting : '');
+                            @endphp
+                            <input type="text" class="form-control @error('keyword_targeting') is-invalid @enderror"
+                                   id="keyword_targeting" name="keyword_targeting"
+                                   value="{{ old('keyword_targeting', $keywords) }}"
+                                   placeholder="sport, musica, tecnologia">
                             @error('keyword_targeting')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -226,7 +284,10 @@
 
                         <div class="col-md-12">
                             <label for="isp_targeting" class="form-label">Provider internet (separati da virgola)</label>
-                            <input type="text" class="form-control @error('isp_targeting') is-invalid @enderror" id="isp_targeting" name="isp_targeting" value="{{ old('isp_targeting') }}" placeholder="Telecom, Vodafone, Wind">
+                            <input type="text" class="form-control @error('isp_targeting') is-invalid @enderror"
+                                   id="isp_targeting" name="isp_targeting"
+                                   value="{{ old('isp_targeting', isset($campaign) ? $campaign->isp_targeting : '') }}"
+                                   placeholder="Telecom, Vodafone, Wind">
                             @error('isp_targeting')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -235,12 +296,45 @@
                 </div>
             </div>
 
+            @if(isset($campaign))
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Stato campagna</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="status" class="form-label">Stato</label>
+                                <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
+                                    @php
+                                        $statuses = ['active' => 'Attiva', 'paused' => 'In pausa', 'completed' => 'Completata'];
+                                        $selectedStatus = old('status', isset($campaign) ? $campaign->status : 'active');
+                                    @endphp
+                                    @foreach($statuses as $value => $label)
+                                        <option value="{{ $value }}" {{ $selectedStatus == $value ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('status')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="d-flex justify-content-between">
                 <a href="{{ route('advertisers.index') }}" class="btn btn-outline-secondary px-4">Annulla</a>
-                <button type="submit" class="btn btn-primary px-5">Crea campagna</button>
+                <button type="submit" class="btn btn-primary px-5">
+                    {{ isset($campaign) ? 'Aggiorna campagna' : 'Crea campagna' }}
+                </button>
             </div>
 
-            <input type="hidden" name="debug_mode" value="1">
+            @if(!isset($campaign))
+                <input type="hidden" name="debug_mode" value="1">
+            @endif
         </form>
     </div>
 @endsection
@@ -258,7 +352,6 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key={{env('PLACES_API_KEY')}}&libraries=places"></script>
     <script>
-
         // Validate dates to ensure end date is after start date
         document.getElementById('start_date').addEventListener('change', function() {
             const startDate = new Date(this.value);
@@ -273,69 +366,6 @@
             }
         });
 
-        // Handle ad format changes
-        document.getElementById('ad_format').addEventListener('change', function() {
-            const format = this.value;
-            const adSizeSelect = document.getElementById('ad_size');
-
-            // Show/hide format-specific elements
-            document.querySelectorAll('.format-dependent').forEach(el => {
-                el.classList.add('d-none');
-            });
-
-            document.querySelectorAll(`.${format}-format`).forEach(el => {
-                el.classList.remove('d-none');
-            });
-
-            // Update options in the select
-            const optgroups = adSizeSelect.querySelectorAll('optgroup');
-            for (const group of optgroups) {
-                const options = group.querySelectorAll('option');
-                if (group.classList.contains(`${format}-format`)) {
-                    // Show options for selected format
-                    options.forEach(opt => opt.style.display = '');
-                    group.style.display = '';
-                } else {
-                    // Hide options for non-selected format
-                    options.forEach(opt => opt.style.display = 'none');
-                    group.style.display = 'none';
-                }
-            }
-
-            // Reset selection
-            adSizeSelect.selectedIndex = 0;
-        });
-
-        // In your existing JavaScript
-        document.addEventListener('DOMContentLoaded', function() {
-            // First, check your CSRF token is being sent
-            const form = document.querySelector('form');
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            // Initialize the hidden fields on page load
-            const adSizeSelect = document.getElementById('ad_size');
-            if (adSizeSelect.value) {
-                const dimensions = adSizeSelect.value.split('x');
-                document.getElementById('ad_width').value = dimensions[0];
-                document.getElementById('ad_height').value = dimensions[1];
-            } else if (adSizeSelect.options.length > 1) {
-                // Select the first non-disabled option if none selected
-                adSizeSelect.selectedIndex = 1;
-                const dimensions = adSizeSelect.value.split('x');
-                document.getElementById('ad_width').value = dimensions[0];
-                document.getElementById('ad_height').value = dimensions[1];
-            }
-        });
-
-        // Keep the existing event listener for changes
-        document.getElementById('ad_size').addEventListener('change', function() {
-            if (this.value) {
-                const dimensions = this.value.split('x');
-                document.getElementById('ad_width').value = dimensions[0];
-                document.getElementById('ad_height').value = dimensions[1];
-            }
-        });
-
         // Add to your JavaScript
         document.getElementById('image').addEventListener('change', function() {
             if (this.files[0] && this.files[0].size > 2 * 1024 * 1024) { // 2MB
@@ -344,16 +374,13 @@
             }
         });
 
-        // Initialize format display
-        document.getElementById('ad_format').dispatchEvent(new Event('change'));
-
         // Replace the current country autocomplete script with Google Places API
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('countryInput');
             const hiddenField = document.getElementById('geo_targeting');
 
             // Set initial value if available
-            input.value = hiddenField.value !== 'All' ? hiddenField.value : '';
+            input.value = hiddenField.value !== 'all' ? hiddenField.value : '';
 
             // Initialize Google Places Autocomplete
             const autocomplete = new google.maps.places.Autocomplete(input, {
@@ -367,7 +394,7 @@
                 const place = autocomplete.getPlace();
 
                 if (!place.name) {
-                    hiddenField.value = 'All';
+                    hiddenField.value = 'all';
                     return;
                 }
 
@@ -389,7 +416,7 @@
             // Add "All" option when clearing the field
             input.addEventListener('input', function() {
                 if (!this.value.trim()) {
-                    hiddenField.value = 'All';
+                    hiddenField.value = 'all';
                 }
             });
 
@@ -402,7 +429,7 @@
             allOptionBtn.textContent = 'Target Everywhere (All)';
             allOptionBtn.onclick = () => {
                 input.value = '';
-                hiddenField.value = 'All';
+                hiddenField.value = 'all';
             };
             allOptionContainer.appendChild(allOptionBtn);
             input.parentNode.appendChild(allOptionContainer);

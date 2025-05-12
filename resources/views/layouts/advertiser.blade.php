@@ -64,43 +64,37 @@
 
 <x-sidebar />
 
-        <main id="main-content" class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+<main id="main-content" class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
-            @yield('content')
-        </main>
-    </div>
+    @yield('content')
+</main>
+</div>
 </div>
 
 <footer class="py-3 mt-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6 text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} CuneoPubblicità. Tutti i diritti riservati.</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-{{--                <a href="{{ route('privacy') }}" class="text-decoration-none me-3">Privacy</a>--}}
-{{--                <a href="{{ route('terms') }}" class="text-decoration-none me-3">Termini</a>--}}
-{{--                <a href="{{ route('contact') }}" class="text-decoration-none">Contatti</a>--}}
-            </div>
+    <div class="container row">
+        <div class="col-md-10 text-center">
+            <p class="mb-0">&copy; {{ date('Y') }} CuneoPubblicità. Tutti i diritti riservati.</p>
         </div>
     </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 @stack('scripts')
 </body>
 </html>

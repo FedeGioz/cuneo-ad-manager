@@ -1,16 +1,16 @@
 @extends('layouts.advertiser')
-@section('title', 'Funding History')
+@section('title', 'Storico Pagamenti')
 
 @section('content')
     <div class="container py-4">
         <div class="row mb-4">
             <div class="col-lg-8">
-                <h1>Payments & Funding</h1>
-                <p class="text-muted">Manage your account balance and view transaction history</p>
+                <h1>Pagamenti</h1>
+                <p class="text-muted">Gestisci il saldo del tuo account e visualizza lo storico delle transazioni</p>
             </div>
             <div class="col-lg-4 text-end">
                 <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addFundingModal">
-                    <i class="fas fa-plus-circle me-2"></i> Add Funds
+                    <i class="fas fa-plus-circle me-2"></i> Aggiungi fondi
                 </button>
             </div>
         </div>
@@ -24,11 +24,11 @@
                                 <i class="fas fa-wallet text-success"></i>
                             </div>
                             <div>
-                                <h6 class="text-muted mb-0">Current Balance</h6>
+                                <h6 class="text-muted mb-0">Saldo attuale</h6>
                                 <h3 class="mb-0">€{{ number_format(Auth::user()->balance ?? 0, 2) }}</h3>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Available for campaigns</p>
+                        <p class="text-muted mb-0">Disponibile per le campagne</p>
                     </div>
                 </div>
             </div>
@@ -41,11 +41,11 @@
                                 <i class="fas fa-coins text-primary"></i>
                             </div>
                             <div>
-                                <h6 class="text-muted mb-0">Total Funded</h6>
+                                <h6 class="text-muted mb-0">Totale finanziato</h6>
                                 <h3 class="mb-0">€{{ number_format($totalFunded ?? 0, 2) }}</h3>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Lifetime account funding</p>
+                        <p class="text-muted mb-0">Totale fondi aggiunti</p>
                     </div>
                 </div>
             </div>
@@ -58,11 +58,11 @@
                                 <i class="fas fa-receipt text-info"></i>
                             </div>
                             <div>
-                                <h6 class="text-muted mb-0">Transactions</h6>
+                                <h6 class="text-muted mb-0">Transazioni</h6>
                                 <h3 class="mb-0">{{ $fundingsCount ?? 0 }}</h3>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Total funding operations</p>
+                        <p class="text-muted mb-0">Totale operazioni di finanziamento</p>
                     </div>
                 </div>
             </div>
@@ -70,16 +70,16 @@
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0">Transaction History</h5>
+                <h5 class="mb-0">Storico transazioni</h5>
             </div>
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                     <tr>
                         <th>ID</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Date</th>
+                        <th>Importo</th>
+                        <th>Stato</th>
+                        <th>Data</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -92,7 +92,7 @@
                             <td>
                                 <span class="fw-bold">{{ ucfirst($funding->status) }}</span>
                             </td>
-                            <td>{{ $funding->created_at->format('M d, Y H:i') }}</td>
+                            <td>{{ $funding->created_at->format('d M Y H:i') }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -101,10 +101,10 @@
                                     <div class="mb-3">
                                         <i class="fas fa-coins fa-3x text-muted"></i>
                                     </div>
-                                    <h5>No transactions found</h5>
-                                    <p class="text-muted">Add funds to your account to get started</p>
+                                    <h5>Nessuna transazione trovata</h5>
+                                    <p class="text-muted">Aggiungi fondi al tuo account per iniziare</p>
                                     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addFundingModal">
-                                        <i class="fas fa-plus-circle me-2"></i> Add Funds Now
+                                        <i class="fas fa-plus-circle me-2"></i> Aggiungi fondi ora
                                     </button>
                                 </div>
                             </td>
@@ -125,25 +125,25 @@
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addFundingModalLabel">Add Funds to Account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="addFundingModalLabel">Aggiungi fondi all'account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
                 </div>
                 <form action="{{ route('advertisers.payment.checkout') }}" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="mb-4">
-                            <label for="amount" class="form-label">Amount to Add (€)</label>
+                            <label for="amount" class="form-label">Importo da aggiungere (€)</label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text">€</span>
                                 <input type="number" min="10" step="0.01" class="form-control" id="amount" name="amount" placeholder="100.00" required>
                             </div>
-                            <div class="form-text">Minimum amount: €10.00</div>
+                            <div class="form-text">Importo minimo: €10.00</div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-arrow-right me-1"></i> Continue to Payment
+                            <i class="fas fa-arrow-right me-1"></i> Continua al pagamento
                         </button>
                     </div>
                 </form>

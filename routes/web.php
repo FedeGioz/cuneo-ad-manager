@@ -22,15 +22,17 @@ Route::middleware([
     Route::get('/advertisers/statistics', [AdvertiserController::class, 'showStatistics'])->name('advertisers.statistics');
     Route::get('/advertisers/payments', [PaymentController::class, 'index'])->name('advertisers.payments.list');
     Route::get('/advertisers/settings', [AdvertiserController::class, 'settings'])->name('advertisers.settings');
-    Route::get('/advertisers/topup', [PaymentController::class, 'index'])->name('advertisers.payment.form');
     Route::post('/advertisers/topup/checkout', [PaymentController::class, 'checkout'])->name('advertisers.payment.checkout');
     Route::get('/advertisers/topup/success', [PaymentController::class, 'success'])->name('advertisers.payment.success');
     Route::get('/advertisers/topup/failed', [PaymentController::class, 'failed'])->name('advertisers.payment.failed');
     Route::put('/advertisers/settings/update', [AdvertiserController::class, 'updateSettings'])->name('advertisers.settings.update');
+    Route::get('start-campaign', [AdvertiserController::class, 'startCampaign'])->name('advertisers.campaigns.start');
+    Route::get('pause-campaign', [AdvertiserController::class, 'pauseCampaign'])->name('advertisers.campaigns.pause');
+    Route::get('delete-campaign', [AdvertiserController::class, 'deleteCampaign'])->name('advertisers.campaigns.delete');
+    Route::get('edit-campaign', [AdvertiserController::class, 'edit'])->name('advertisers.campaigns.edit');
+    Route::put('/update-campaign/{campaign}', [AdvertiserController::class, 'updateCampaign'])->name('advertisers.campaigns.update');
 });
 
 Route::get('device-info', [AdServeController::class, 'device_info']);
 Route::get('match', [AdServeController::class, 'match']);
-Route::get('start-campaign', [AdvertiserController::class, 'startCampaign'])->name('advertisers.campaigns.start');
-Route::get('pause-campaign', [AdvertiserController::class, 'pauseCampaign'])->name('advertisers.campaigns.pause');
-Route::get('delete-campaign', [AdvertiserController::class, 'deleteCampaign'])->name('advertisers.campaigns.delete');
+Route::get('show-categories', [GuestController::class, 'showCategories'])->name('advertisers.categories.show');

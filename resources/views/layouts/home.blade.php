@@ -35,7 +35,7 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="{{ url('/') }}">{{ config('app.name', 'Laravel') }}</a>
+        <a class="navbar-brand" href="{{ url('/') }}">{{ config('app.name', 'CuneoPubblicità') }}</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -45,10 +45,7 @@
                     <a class="nav-link active" href="{{ url('/') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Browse Ads</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Categories</a>
+                    <a class="nav-link" href="{{ route('advertisers.categories.show') }}">Categories</a>
                 </li>
             </ul>
             <ul class="navbar-nav">
@@ -64,7 +61,16 @@
 </nav>
 
 <main>
-    @yield('hero')
+    <div class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1>Benvenuti su CuneoPubblicità</h1>
+                    <p class="lead">La piattaforma di annunci locali per le aziende e i servizi della città di Cuneo</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="container py-4">
         @yield('content')
