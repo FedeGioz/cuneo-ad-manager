@@ -12,7 +12,6 @@ class DailyPerformance extends Model
         'date',
         'impressions',
         'clicks',
-        'conversions',
         'cost',
         'campaign_id',
     ];

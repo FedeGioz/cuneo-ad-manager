@@ -50,10 +50,11 @@
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/login') }}">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link btn btn-primary text-white px-3" href="{{ url('/register') }}">Register</a>
+                    @if(!auth()->check())
+                        <a class="nav-link" href="{{ url('/login') }}">Pubblicizza la tua azienda</a>
+                    @else
+                        <a class="nav-link" href="{{ url('/dashboard') }}">Dashboard</a>
+                    @endif
                 </li>
             </ul>
         </div>

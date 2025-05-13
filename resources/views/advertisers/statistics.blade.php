@@ -45,13 +45,11 @@
                             <th>Nome campagna</th>
                             <th>ID campagna</th>
                             <th>Impression</th>
-                            <th>Clic</th>
+                            <th>Click</th>
                             <th>CTR</th>
-                            <th>Conv.</th>
                             <th>Costo</th>
                             <th>eCPM</th>
                             <th>eCPC</th>
-                            <th>eCPA</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -62,11 +60,10 @@
                                 <td>{{ number_format($stat->impressions) }}</td>
                                 <td>{{ number_format($stat->clicks) }}</td>
                                 <td>{{ number_format($stat->ctr, 2) }}%</td>
-                                <td>{{ number_format($stat->conversions) }}</td>
                                 <td>${{ number_format($stat->cost, 2) }}</td>
                                 <td>${{ number_format($stat->ecpm, 2) }}</td>
                                 <td>${{ number_format($stat->ecpc, 2) }}</td>
-                                <td>${{ number_format($stat->ecpa, 2) }}</td>
+
                             </tr>
                         @empty
                             <tr>

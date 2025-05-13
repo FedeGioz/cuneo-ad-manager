@@ -65,7 +65,7 @@ class AdServeController extends Controller
             GuestUser::where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->first();
 
         if(!$guestUser){
-            return response()->json(['message' => 'No guest user found'], 404);
+            $this->device_info($request);
         }
 
         $campaigns = Campaign::where('status', 'active')
@@ -87,29 +87,20 @@ class AdServeController extends Controller
                     ->orWhere('isp_targeting', 'all');
             })
             ->where(function($query) use ($guestUser) {
-                $query->where('os_targeting', $guestUser->device_os)
+                $query->whereRaw("? LIKE CONCAT('%', os_targeting, '%')", [$guestUser->device_os])
                     ->orWhere('os_targeting', 'all');
             })
             ->where(function($query) use ($guestUser) {
-                $query->where('browser_targeting', $guestUser->device_browser)
+                $query->whereRaw("? LIKE CONCAT('%', browser_targeting, '%')", [$guestUser->device_browser])
                     ->orWhere('browser_targeting', 'all');
             })
             ->where(function($query) use ($guestUser) {
-                $query->where('browser_language_targeting', $guestUser->device_language)
+                $query->whereRaw("? LIKE CONCAT('%', browser_language_targeting, '%')", [$guestUser->device_language])
                     ->orWhere('browser_language_targeting', 'all');
             })
             ->where(function($query) use ($guestUser) {
-                if (!empty($guestUser->keywords)) {
-                    $keywords = json_decode($guestUser->keywords, true);
-
-                    $query->where(function($subquery) use ($keywords) {
-                        foreach ($keywords as $keyword) {
-                            $subquery->orWhereJsonContains('keyword_targeting', $keyword);
-                        }
-                    });
-                } else {
-                    $query->whereJsonContains('keyword_targeting', 'all');
-                }
+                $query->whereRaw("? LIKE CONCAT('%', keyword_targeting, '%')", [$guestUser->keywords])
+                    ->orWhere('keyword_targeting', 'all');
             })
             ->where(function($query) use ($request) {
                 if($request->input('category')){
@@ -137,8 +128,6 @@ class AdServeController extends Controller
                     'ad_category' => $campaign->ad_category,
                     'ad_format' => $campaign->ad_format,
                     'ad_type' => $campaign->ad_type,
-                    'ad_width' => $campaign->ad_width,
-                    'ad_height' => $campaign->ad_height,
                     'target_url' => $campaign->target_url,
                     'creative_path' => $campaign->creative->getUrl()
                 ];
@@ -158,6 +147,48 @@ class AdServeController extends Controller
 
         if (!$campaign) {
             return response()->json(['error' => 'Campaign not found'], 404);
+        }
+
+        $guestUser = $request->session()->get('guestUser') ??
+            GuestUser::where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->first();
+
+        if ($guestUser && $campaign->keyword_targeting && $campaign->keyword_targeting !== 'all') {
+            // Extract the first keyword from campaign keywords
+            $campaignKeywords = $campaign->keyword_targeting;
+            if (!is_array($campaignKeywords)) {
+                $campaignKeywords = explode(',', str_replace(['[', ']', '"', "'"], '', $campaignKeywords));
+            }
+
+            if (!empty($campaignKeywords)) {
+                $keywordToAdd = trim($campaignKeywords[0]);
+
+                // Check if the keyword already exists using LIKE approach
+                $keywordExists = false;
+
+                if (!empty($guestUser->keywords)) {
+                    $keywordExists = DB::select(
+                        "SELECT 1 WHERE ? LIKE CONCAT('%', ?, '%')",
+                        [$guestUser->keywords, $keywordToAdd]
+                    );
+                }
+
+                // Add keyword if not found
+                if (!$keywordExists) {
+                    $userKeywords = !empty($guestUser->keywords) ?
+                        json_decode($guestUser->keywords, true) : [];
+
+                    if (!is_array($userKeywords)) {
+                        $userKeywords = [];
+                    }
+
+                    $userKeywords[] = $keywordToAdd;
+
+                    $guestUser->keywords = json_encode($userKeywords);
+                    $guestUser->save();
+
+                    $request->session()->put('guestUser', $guestUser);
+                }
+            }
         }
 
         DailyPerformance::where('campaign_id', $campaignId)

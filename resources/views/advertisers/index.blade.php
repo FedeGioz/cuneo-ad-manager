@@ -91,8 +91,8 @@
                                     <td>€{{ number_format($campaign->daily_budget, 2) }}/giorno</td>
                                     <td>{{ Carbon::parse($campaign->start_date)->format('d/m/Y') }}
                                         - {{ Carbon::parse($campaign->end_date)->format('d/m/Y') }}</td>
-                                    <td>{{ $campaign->impressions ?? 0 }}</td>
-                                    <td>{{ $campaign->clicks ?? 0 }}</td>
+                                    <td>{{ $campaignStats[$campaign->id][0] ?? 0 }}</td>
+                                    <td>{{ $campaignStats[$campaign->id][1] ?? 0 }}</td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
                                             @if($campaign->status == 'paused')

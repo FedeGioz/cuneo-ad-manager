@@ -38,7 +38,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('advertisers.campaigns.create') }}" class="nav-link {{ request()->routeIs('advertisers.campaigns.create') ? 'active text-dark' : 'text-white' }}">
+            <a href="{{ route('advertisers.campaigns.showCreate') }}" class="nav-link {{ request()->routeIs('advertisers.campaigns.showCreate') ? 'active text-dark' : 'text-white' }}">
                 <i class="fas fa-bullhorn me-2"></i>
                 Nuova Campagna
             </a>
@@ -49,7 +49,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('advertisers.payments.list') }}" class="nav-link {{ request()->routeIs('advertisers.payments') ? 'active text-dark' : 'text-white' }}">                <i class="fas fa-credit-card me-2"></i>
+            <a href="{{ route('advertisers.payments.list') }}" class="nav-link {{ request()->routeIs('advertisers.payments.list') ? 'active text-dark' : 'text-white' }}">                <i class="fas fa-credit-card me-2"></i>
                 Pagamenti
             </a>
         </li>

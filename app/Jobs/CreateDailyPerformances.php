@@ -32,8 +32,6 @@ class CreateDailyPerformances implements ShouldQueue
             'impressions' => 0,
             'views' => 0,
             'clicks' => 0,
-            'conversions' => 0,
-            'cost' => 0,
             'campaign_id' => $this->campaign->id
         ]);
     }

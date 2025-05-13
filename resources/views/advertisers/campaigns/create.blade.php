@@ -1,4 +1,3 @@
-{{-- resources/views/advertisers/campaigns/create.blade.php --}}
 @extends('layouts.advertiser')
 
 @if ($errors->any())

@@ -40,8 +40,6 @@ class CampaignSeeder extends Seeder
                 'device' => $devices[array_rand($devices)],
                 'ad_format' => $formats[array_rand($formats)],
                 'ad_type' => $types[array_rand($types)],
-                'ad_width' => $width,
-                'ad_height' => $height,
                 'ad_category' => $categories[array_rand($categories)],
                 'geo_targeting' => $cities[array_rand($cities)],
                 'isp_targeting' => 'All',

@@ -15,7 +15,14 @@ class PaymentController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('advertisers.payments.list')->with(['fundings'=> $payments]);
+        $transactions = Funding::where('user_id', auth()->id())->count();
+        $total = Funding::where('user_id', auth()->id())->where('status', 'paid')->sum('amount');
+
+        return view('advertisers.payments.list')->with([
+            'fundings'=> $payments,
+            'total' => $total,
+            'transactions' => $transactions
+        ]);
     }
 
     public function checkout(Request $request){

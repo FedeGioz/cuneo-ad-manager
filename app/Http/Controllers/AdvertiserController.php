@@ -8,6 +8,7 @@ use App\Models\Creative;
 use App\Models\DailyPerformance;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,10 +19,21 @@ class AdvertiserController extends Controller
         # Metodo pluck = select che prende i valori della chiave selezionata
         $userCampaigns = Campaign::where('user_id', $userId)->pluck('id');
 
+        $campaignStats = DailyPerformance::whereIn('campaign_id', $userCampaigns)
+            ->selectRaw('campaign_id, SUM(impressions) as total_impressions, SUM(clicks) as total_clicks')
+            ->groupBy('campaign_id')
+            ->get()
+            ->keyBy('campaign_id')
+            ->map(function ($item) {
+                return [$item->total_impressions, $item->total_clicks];
+            })
+            ->toArray();
+
         return view('advertisers.index')->with([
             'campaigns' => Campaign::where('user_id', $userId)->get(),
             'totalImpressions' => DailyPerformance::whereIn('campaign_id', $userCampaigns)->sum('impressions'),
-            'totalClicks' => DailyPerformance::whereIn('campaign_id', $userCampaigns)->sum('clicks')
+            'totalClicks' => DailyPerformance::whereIn('campaign_id', $userCampaigns)->sum('clicks'),
+            'campaignStats' => $campaignStats,
         ]);
     }
 
@@ -190,60 +202,52 @@ class AdvertiserController extends Controller
     public function showStatistics(Request $request)
     {
         $userId = $request->user()->id;
-        $campaigns = Campaign::where('user_id', $userId)
+        $allCampaigns = Campaign::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
 
         $campaignId = $request->get('campaignId');
-
         $campaignStats = collect();
 
-        if ($campaignId) {
-            $campaign = Campaign::findOrFail($campaignId);
-            $performance = DailyPerformance::where('campaign_id', $campaignId)->get();
+        $filteredCampaigns = $campaignId ? $allCampaigns->where('id', $campaignId) : $allCampaigns;
+        $campaignIds = $filteredCampaigns->pluck('id')->toArray();
+
+        foreach ($filteredCampaigns as $campaign) {
+            $performance = DailyPerformance::where('campaign_id', $campaign->id)->get();
+
+            $impressions = $performance->sum('impressions');
+            $clicks = $performance->sum('clicks');
+            $cost = $clicks * $campaign->max_bid;
 
             $campaignStats->push((object)[
                 'id' => $campaign->id,
                 'name' => $campaign->name,
-                'impressions' => $performance->sum('impressions'),
-                'clicks' => $performance->sum('clicks'),
-                'ctr' => $performance->sum('impressions') > 0 ?
-                    ($performance->sum('clicks') / $performance->sum('impressions') * 100) : 0,
-                'conversions' => $performance->sum('conversions'),
-                'cost' => $performance->sum('cost'),
-                'ecpm' => $performance->sum('impressions') > 0 ?
-                    ($performance->sum('cost') / $performance->sum('impressions') * 1000) : 0,
-                'ecpc' => $performance->sum('clicks') > 0 ?
-                    ($performance->sum('cost') / $performance->sum('clicks')) : 0,
-                'ecpa' => $performance->sum('conversions') > 0 ?
-                    ($performance->sum('cost') / $performance->sum('conversions')) : 0,
+                'impressions' => $impressions,
+                'clicks' => $clicks,
+                'ctr' => $impressions > 0 ? ($clicks / $impressions * 100) : 0,
+                'cost' => $cost,
+                'ecpm' => $impressions > 0 ? ($cost / $impressions * 1000) : 0,
+                'ecpc' => $clicks > 0 ? ($cost / $clicks) : 0
             ]);
-        } else {
-            foreach ($campaigns as $campaign) {
-                $performance = DailyPerformance::where('campaign_id', $campaign->id)->get();
-
-                $campaignStats->push((object)[
-                    'id' => $campaign->id,
-                    'name' => $campaign->name,
-                    'impressions' => $performance->sum('impressions'),
-                    'clicks' => $performance->sum('clicks'),
-                    'ctr' => $performance->sum('impressions') > 0 ?
-                        ($performance->sum('clicks') / $performance->sum('impressions') * 100) : 0,
-                    'conversions' => $performance->sum('conversions'),
-                    'cost' => $performance->sum('cost'),
-                    'ecpm' => $performance->sum('impressions') > 0 ?
-                        ($performance->sum('cost') / $performance->sum('impressions') * 1000) : 0,
-                    'ecpc' => $performance->sum('clicks') > 0 ?
-                        ($performance->sum('cost') / $performance->sum('clicks')) : 0,
-                    'ecpa' => $performance->sum('conversions') > 0 ?
-                        ($performance->sum('cost') / $performance->sum('conversions')) : 0,
-                ]);
-            }
         }
 
+        $chartData = DailyPerformance::whereIn('campaign_id', $campaignIds)
+            ->selectRaw('date, SUM(impressions) as total_impressions, SUM(clicks) as total_clicks')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(function ($item) {
+                return (object)[
+                    'date' => $item->date,
+                    'aggregate' => $item->total_impressions > 0
+                        ? round(($item->total_clicks / $item->total_impressions * 100), 2)
+                        : 0
+                ];
+            });
+
         return view('advertisers.statistics', [
-            'campaigns' => $campaigns,
-            'data' => $data ?? collect(),
+            'campaigns' => $allCampaigns,
+            'data' => $chartData,
             'selectedCampaignId' => $campaignId ?? null,
             'campaignStats' => $campaignStats
         ]);

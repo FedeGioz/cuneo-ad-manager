@@ -13,13 +13,11 @@ return new class extends Migration
     {
         Schema::create('daily_performance', function (Blueprint $table) {
             $table->id();
-
             $table->string('date');
             $table->integer('impressions');
             $table->integer('clicks');
-            $table->integer('conversions');
-            $table->decimal('cost', 10, 2);
             $table->foreignId('campaign_id')->constrained('campaigns')->onDelete('cascade');
+            $table->index(['campaign_id', 'impressions', 'clicks']);
 
             $table->timestamps();
         });

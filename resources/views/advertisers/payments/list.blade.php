@@ -42,7 +42,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted mb-0">Totale finanziato</h6>
-                                <h3 class="mb-0">€{{ number_format($totalFunded ?? 0, 2) }}</h3>
+                                <h3 class="mb-0">€{{ number_format($total ?? 0, 2) }}</h3>
                             </div>
                         </div>
                         <p class="text-muted mb-0">Totale fondi aggiunti</p>
@@ -59,7 +59,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted mb-0">Transazioni</h6>
-                                <h3 class="mb-0">{{ $fundingsCount ?? 0 }}</h3>
+                                <h3 class="mb-0">{{ $transactions ?? 0 }}</h3>
                             </div>
                         </div>
                         <p class="text-muted mb-0">Totale operazioni di finanziamento</p>
