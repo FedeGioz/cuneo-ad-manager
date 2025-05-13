@@ -65,6 +65,7 @@ class AdServeController extends Controller
             GuestUser::where('ip', $request->ip())->where('user_agent', $request->header('User-Agent'))->first();
 
         if(!$guestUser){
+            error_log("ENTRATO NEL DEVICE INFO NO GUEST");
             $this->device_info($request);
         }
 
