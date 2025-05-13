@@ -137,7 +137,10 @@ class AdvertiserController extends Controller
             return redirect('/dashboard');
         }
 
-        Campaign::where('id', $campaignId)->where('user_id', $request->user()->id)->delete();
+        $campaign = Campaign::where('id', $campaignId)->where('user_id', $request->user()->id);
+        Creative::where('id', $campaign->first()->creative_id)->where('user_id', $request->user()->id)->delete();
+        DailyPerformance::where('campaign_id', $campaignId)->delete();
+        $campaign->delete();
 
         return redirect($request->url());
     }
