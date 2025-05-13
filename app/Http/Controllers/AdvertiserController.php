@@ -6,8 +6,10 @@ use App\Jobs\CreateDailyPerformances;
 use App\Models\Campaign;
 use App\Models\Creative;
 use App\Models\DailyPerformance;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class AdvertiserController extends Controller
 {
@@ -47,32 +49,31 @@ class AdvertiserController extends Controller
                 'start_date' => 'required|date',
                 'end_date' => 'required|date|after:start_date',
                 'daily_budget' => 'required|numeric',
-                'image' => 'required|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'image' => 'required|file|mimes:jpeg,png,jpg|max:2048',
             ]);
 
-            $keywordArray = null;
             if ($request->filled('keyword_targeting')) {
                 $keywordArray = array_map('trim', explode(',', $request->keyword_targeting));
             }
 
-            $ispArray = null;
             if ($request->filled('isp_targeting')) {
                 $ispArray = array_map('trim', explode(',', $request->isp_targeting));
             }
 
-            $creative = null;
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
                 $fileName = time() . '_' . $file->getClientOriginalName();
 
                 try {
-                    $path = $file->storeAs('creatives', $fileName, 'public');
+                    $path = Storage::disk('s3')->putFileAs('creatives', $file, $fileName);
 
                     $creative = Creative::create([
                         'name' => $fileName,
                         'path' => $path,
                         'user_id' => auth()->id()
                     ]);
+
+                    $creativeId = $creative->id;
                 } catch (\Exception $e) {
                     return back()->withErrors(['image' => 'Failed to upload image: ' . $e->getMessage()])->withInput();
                 }
@@ -97,7 +98,7 @@ class AdvertiserController extends Controller
                 'daily_budget' => $validated['daily_budget'],
                 'target_url' => $validated['target_url'],
                 'user_id' => auth()->id(),
-                'creative_id' => $creative ? $creative->id : null
+                'creative_id' => $creativeId ?? null
             ]);
 
             CreateDailyPerformances::dispatch($campaign);
@@ -303,7 +304,7 @@ class AdvertiserController extends Controller
                 $fileName = time() . '_' . $file->getClientOriginalName();
 
                 try {
-                    $path = $file->storeAs('creatives', $fileName, 'public');
+                    $path = Storage::disk('s3')->putFileAs('creatives', $file, $fileName);
 
                     $creative = Creative::create([
                         'name' => $fileName,
@@ -312,7 +313,7 @@ class AdvertiserController extends Controller
                     ]);
 
                     $campaign->creative_id = $creative->id;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     return back()->withErrors(['image' => 'Failed to upload image: ' . $e->getMessage()])->withInput();
                 }
             }

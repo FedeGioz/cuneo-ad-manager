@@ -140,7 +140,7 @@ class AdServeController extends Controller
                     'ad_width' => $campaign->ad_width,
                     'ad_height' => $campaign->ad_height,
                     'target_url' => $campaign->target_url,
-                    'creative_path' => $campaign->creative->path
+                    'creative_path' => $campaign->creative->getUrl()
                 ];
             }
         }

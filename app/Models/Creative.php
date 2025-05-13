@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Creative extends Model
 {
@@ -18,5 +19,10 @@ class Creative extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getUrl()
+    {
+        return Storage::disk('s3')->url($this->path);
     }
 }
