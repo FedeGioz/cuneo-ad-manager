@@ -31,7 +31,7 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm">
                         @if(isset($ad['creative_path']))
-                            <img src="{{ Storage::disk('s3')->url($ad['creative_path']) }}" class="card-img-top"
+                            <img src="{{ Storage::url($ad['creative_path']) }}" class="card-img-top"
                                  alt="{{ $ad['ad_title'] }}">
                         @else
                             <div class="bg-light text-center p-5">
