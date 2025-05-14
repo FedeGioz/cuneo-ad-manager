@@ -1,162 +1,249 @@
-# Documentazione Completa del Progetto (Basata sul Codice Fornito)
+# **Documentazione di CuneoPubblicità**
 
-Questo documento descrive l'architettura del sistema di gestione campagne pubblicitarie, utilizzando il modello C4 per la visualizzazione dell'architettura software e una descrizione della struttura del database (precedentemente rappresentata da un diagramma Entità-Relazione).
+## **Struttura del Database (Descrizione Entità-Relazione)**
 
-## Struttura del Database (Descrizione Entità-Relazione)
+Di seguito è riportato il diagramma Entità-Relazione (ERD) che descrive la struttura del database:
 
-Il database è composto dalle seguenti entità principali con le loro relazioni:
+```mermaid
+erDiagram
+    User {
+        int id PK
+        string first_name
+        string last_name
+        string email UK
+        timestamp email_verified_at
+        string password_hash
+        date dob
+        string company_name
+        string address
+        string country
+        string city
+        string zip_code
+        decimal balance
+        timestamp created_at
+        timestamp updated_at
+    }
 
-* **USERS (Utenti):** Memorizza le informazioni degli inserzionisti registrati.
-    * **Attributi Chiave:** `id` (PK), `first_name`, `last_name`, `email` (Univoca), `password` (Hashed), `dob`, `company_name`, `address`, `country`, `city`, `zip_code`, `balance`, `email_verified_at`, `remember_token`, `two_factor_recovery_codes`, `two_factor_secret`, `profile_photo_url` (attributo appeso generato da Jetstream).
-    * **Relazioni:**
-        * Un `User` può possedere molte `Creatives`.
-        * Un `User` può creare e gestire molte `Campaigns`.
-        * Un `User` può effettuare molti `Fundings`.
+    GuestUser {
+        int id PK
+        string ip
+        string user_agent
+        string country
+        string city
+        string isp
+        enum device_os
+        enum device_type
+        string device_browser
+        string device_language
+        json keywords
+        timestamp created_at
+        timestamp updated_at
+    }
 
-* **GUEST_USERS (Utenti Ospiti):** Traccia informazioni anonime sui visitatori che interagiscono con gli annunci.
-    * **Attributi Chiave:** `id` (PK), `ip`, `user_agent`, `country`, `city`, `isp`, `device_os` (enum), `device_type` (enum), `device_browser`, `device_language`, `keywords` (JSON).
+    Creative {
+        int id PK
+        string name
+        string path
+        int user_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
 
-* **CREATIVES (Creatività):** Rappresenta gli asset grafici (immagini) utilizzati nelle campagne.
-    * **Attributi Chiave:** `id` (PK), `name`, `path` (percorso del file), `user_id` (FK a `USERS`).
-    * **Relazioni:**
-        * Appartiene a un `User`.
-        * Può essere utilizzata (opzionalmente) da una o più `Campaigns`.
+    Campaign {
+        int id PK
+        string name
+        enum status
+        string ad_title
+        string ad_description
+        enum device
+        enum ad_category
+        string geo_targeting
+        string isp_targeting
+        enum os_targeting
+        enum browser_targeting
+        string browser_language_targeting
+        text keyword_targeting
+        decimal max_bid
+        date start_date
+        date end_date
+        decimal daily_budget
+        string target_url
+        int user_id FK
+        int creative_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
 
-* **CAMPAIGNS (Campagne):** Contiene i dettagli delle campagne pubblicitarie create dagli utenti.
-    * **Attributi Chiave:** `id` (PK), `name`, `status` (enum), `ad_title`, `ad_description`, `device` (enum per targeting), `ad_category` (enum), `geo_targeting`, `isp_targeting`, `os_targeting` (enum), `browser_targeting` (enum), `browser_language_targeting`, `keyword_targeting` (JSON di array), `max_bid`, `start_date`, `end_date`, `daily_budget`, `target_url`, `user_id` (FK a `USERS`), `creative_id` (FK a `CREATIVES`, nullable).
-    * **Relazioni:**
-        * Appartiene a un `User`.
-        * Può utilizzare (opzionalmente) una `Creative`.
-        * Registra molte `DailyPerformance`.
+    DailyPerformance {
+        int id PK
+        string date
+        int impressions
+        int clicks
+        int campaign_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
 
-* **DAILY_PERFORMANCE (Performance Giornaliere):** Memorizza le statistiche giornaliere di ogni campagna.
-    * **Attributi Chiave:** `id` (PK), `date`, `impressions`, `clicks`, `conversions`, `cost`, `campaign_id` (FK a `CAMPAIGNS`).
-    * **Relazioni:**
-        * Appartiene a una `Campaign`.
+    Funding {
+        int id PK
+        decimal amount
+        int user_id FK
+        enum status
+        string session_id
+        timestamp created_at
+        timestamp updated_at
+    }
 
-* **FUNDINGS (Finanziamenti):** Registra le transazioni di finanziamento degli account utente.
-    * **Attributi Chiave:** `id` (PK), `amount`, `user_id` (FK a `USERS`), `status` (enum: 'unpaid', 'paid', 'failed'), `session_id` (es. per Stripe).
-    * **Relazioni:**
-        * Appartiene a un `User`.
+    User ||--o{ Campaign : "gestisce"
+    User ||--o{ Creative : "possiede"
+    User ||--o{ Funding : "inizia"
+    Campaign }o--|| Creative : "utilizza (opzionale)"
+    Campaign ||--o{ DailyPerformance : "registra"
 
-## Documentazione C4
+```
 
-### Livello 1: Contesto del Sistema (System Context)
+Il database è composto dalle seguenti entità principali con le loro relazioni, come definite nelle migration:
+
+* **USERS (Utenti):** Memorizza le informazioni degli inserzionisti registrati.  
+  * **Attributi Chiave:** id (PK), first\_name, last\_name, email (Univoca), password (Hashed), dob, company\_name, address, country, city, zip\_code, balance (decimal 10,2), email\_verified\_at (nullable), remember\_token, two\_factor\_recovery\_codes, two\_factor\_secret, profile\_photo\_url (attributo appeso).  
+  * **Relazioni:**  
+    * Un User (id) hasMany Creatives (user\_id).  
+    * Un User (id) hasMany Campaigns (user\_id).  
+    * Un User (id) hasMany Fundings (user\_id).  
+* **GUEST\_USERS (Utenti Ospiti):** Traccia informazioni anonime sui visitatori che interagiscono con gli annunci.  
+  * **Attributi Chiave:** id (PK), ip, user\_agent (default 'unknown'), country (default 'unknown'), city (default 'unknown'), isp (default 'unknown'), device\_os (enum: 'Windows', 'Linux', 'Android', 'iOS', 'unknown', default 'unknown'), device\_type (enum: 'desktop', 'mobile', 'unknown', default 'unknown'), device\_browser (default 'unknown'), device\_language (default 'unknown'), keywords (jsonb, default '\[\]').  
+  * L'arricchimento dei dati IP è facilitato dalla libreria ipinfo/ipinfo e Laravel\\Jetstream\\Agent.  
+* **CREATIVES (Creatività):** Rappresenta gli asset grafici (immagini) utilizzati nelle campagne.  
+  * **Attributi Chiave:** id (PK), name, path (percorso del file su S3), user\\\_id (FK a USERS, onDelete('cascade')).  
+  * **Relazioni:**  
+    * Appartiene a un User (user\_id belongsTo).  
+    * Può essere utilizzata (opzionalmente) da una o più Campaigns (Campaigns belongsTo Creative tramite creative\_id).  
+  * La gestione e manipolazione delle immagini (es. upload a S3) è supportata dalla libreria intervention/image (dedotto dalle dependencies) e dalla gestione storage di Laravel (Storage::disk('s3')). Il modello include un accessor getUrl() per generare l'URL pubblico dell'immagine su S3.  
+* **CAMPAIGNS (Campagne):** Contiene i dettagli delle campagne pubblicitarie create dagli utenti.  
+  * **Attributi Chiave:** id (PK), name, status (enum: 'active', 'paused', 'deleted', default 'paused'), ad\_title, ad\_description, device (enum: 'all', 'desktop', 'mobile'), ad\_category (enum: 'ristoranti', 'tecnologia', ..., 'altro'), geo\_targeting (nullable), isp\_targeting (nullable), os\_targeting (enum: 'android', ..., 'all'), browser\_targeting (enum: 'chrome', ..., 'all'), browser\_language\_targeting (nullable), keyword\_targeting (text, nullable, castato a array), max\_bid (decimal 10,2), start\_date (date), end\_date (date), daily\_budget (decimal 10,2, nullable), target\_url, user\\\_id (FK a USERS, onDelete('cascade')), creative\\\_id (FK a CREATIVES, nullable, onDelete('setnull')).  
+  * **Relazioni:**  
+    * Appartiene a un User (user\_id belongsTo).  
+    * Può utilizzare (opzionalmente) una Creative (creative\_id belongsTo).  
+    * Registra molte DailyPerformance (hasMany).  
+* **DAILY\_PERFORMANCE (Performance Giornaliere):** Memorizza le statistiche giornaliere di ogni campagna.  
+  * **Attributi Chiave:** id (PK), date (string), impressions (integer), clicks (integer), cost (assente nella migration/modello fornito, ma calcolato nei controller), campaign\\\_id (FK a CAMPAIGNS, onDelete('cascade')).  
+  * **Indici:** (campaign\_id, impressions, clicks).  
+  * **Relazioni:**  
+    * Appartiene a una Campaign (campaign\_id belongsTo).  
+* **FUNDINGS (Finanziamenti):** Registra le transazioni di finanziamento degli account utente.  
+  * **Attributi Chiave:** id (PK), amount (decimal 10,2), user\\\_id (FK a USERS, onDelete('cascade')), status (enum: 'unpaid', 'paid', 'failed', default 'unpaid'), session\\\_id (nullable).  
+  * **Relazioni:**  
+    * Appartiene a un User (user\_id belongsTo).  
+  * Le transazioni di pagamento sono gestite tramite l'integrazione con stripe/stripe-php.
+
+## **Documentazione C4**
+
+### **Livello 1: Contesto del Sistema (System Context)**
 
 Il "Sistema di Gestione Campagne Pubblicitarie Laravel" opera all'interno di un ecosistema che include diversi attori e sistemi esterni.
 
 **Descrizione degli Elementi di Contesto:**
 
-* **Utente Inserzionista (Advertiser):** L'attore principale. È una persona o un'azienda che si registra sulla piattaforma per creare, finanziare, gestire e monitorare le proprie campagne pubblicitarie. Interagisce con il sistema principalmente tramite un'interfaccia web fornita dall'applicazione Laravel, utilizzando il protocollo HTTPS per comunicazioni sicure.
+* **Utente Inserzionista (Advertiser):** L'attore principale. È una persona o un'azienda che si registra sulla piattaforma (gestita tramite Jetstream) per creare, finanziare, gestire e monitorare le proprie campagne pubblicitarie. Interagisce con il sistema principalmente tramite un'interfaccia web fornita dall'applicazione Laravel/Livewire, utilizzando il protocollo HTTPS.  
+* **Sistema di Gestione Campagne Pubblicitarie Laravel (Questo Sistema):** È l'applicazione software al centro di questa documentazione, costruita utilizzando il framework Laravel 12.x con PHP 8.2+. Le sue responsabilità principali includono fornire l'interfaccia agli inserzionisti e agli utenti visitatori, gestire la logica di business delle campagne (targeting, erogazione, statistiche), l'autenticazione/autorizzazione, e orchestrare le interazioni con il database e i servizi esterni.  
+* **Utente Visitatore (Guest User):** L'utente finale che visualizza gli annunci pubblicitari erogati dalla piattaforma su vari siti o applicazioni. Il sistema traccia e arricchisce informazioni anonime su questi utenti (IP, user agent, dispositivo, geolocalizzazione, ISP, lingua) usando la libreria ipinfo/ipinfo e Laravel\\Jetstream\\Agent, memorizzandole nell'entità GuestUser. L'interazione avviene tramite protocollo HTTP/HTTPS per l'erogazione degli annunci.  
+* **Sistema di Pagamento Esterno (Stripe):** Un servizio di terze parti (stripe/stripe-php) che gestisce in modo sicuro le transazioni finanziarie. L'applicazione Laravel interagisce con l'API di Stripe (tipicamente HTTPS/JSON) per creare sessioni di checkout e gestire i webhook di conferma pagamento.  
+* **Google Places API (Servizio Esterno SaaS):** Un servizio fornito da Google, utilizzato dall'applicazione per funzionalità di geolocalizzazione, come l'autocompletamento degli indirizzi per il targeting geografico (interazione tramite API HTTPS/JSON).  
+* **AWS S3 (Servizio di Cloud Storage):** Un servizio di storage di oggetti fornito da Amazon Web Services (aws/aws-sdk-php, league/flysystem-aws-s3-v3). Viene utilizzato come backend per memorizzare i file binari delle creatività pubblicitarie, accessibile tramite le funzionalità di Storage di Laravel.  
+* **Utente Amministratore (Ipotetico):** Sebbene non gestito esplicitamente dal codice fornito, un ruolo amministrativo sarebbe tipico per la gestione della piattaforma.
 
-* **Sistema di Gestione Campagne Pubblicitarie Laravel (Questo Sistema):** È l'applicazione software al centro di questa documentazione, costruita utilizzando il framework Laravel. Le sue responsabilità principali includono fornire l'interfaccia agli inserzionisti, gestire la logica di business delle campagne, l'autenticazione, l'autorizzazione, e orchestrare le interazioni con il database e i servizi esterni.
-
-* **Utente Visitatore (Guest User):** L'utente finale che visualizza gli annunci pubblicitari erogati dalla piattaforma su vari siti o applicazioni. Il sistema traccia informazioni anonime su questi utenti (come IP, user agent, dispositivo, ecc., memorizzate nell'entità `GuestUser`) per scopi di targeting degli annunci e per l'analisi delle performance delle campagne. L'interazione avviene tramite protocollo HTTP/HTTPS, a seconda di come gli annunci vengono serviti.
-
-* **Sistema di Pagamento Esterno (es. Stripe):** Un servizio di terze parti (come Stripe, dedotto dalla presenza del file `stripe_checkout.blade.php` e del campo `session_id` nella tabella `Fundings`) che gestisce in modo sicuro le transazioni finanziarie. L'applicazione Laravel interagisce con questo sistema tramite API (tipicamente HTTPS/JSON) per processare i pagamenti quando gli inserzionisti aggiungono fondi ai loro account.
-
-* **Google Places API (Servizio Esterno SaaS):** Un servizio fornito da Google, utilizzato dall'applicazione per funzionalità di geolocalizzazione, come l'autocompletamento degli indirizzi o la selezione di aree geografiche per il targeting delle campagne (come indicato dalla variabile d'ambiente `PLACES_API_KEY` e dal codice JavaScript nei file Blade). L'interazione avviene tramite API HTTPS/JSON.
-
-* **Utente Amministratore (Ipotetico):** Sebbene non esplicitamente definito nel codice fornito, un sistema di questa natura di solito include un ruolo amministrativo. Questo utente sarebbe responsabile della gestione generale della piattaforma, della supervisione degli utenti, delle configurazioni di sistema, e potrebbe interagire tramite un pannello di amministrazione separato (non visibile nel codice attuale).
-
-### Livello 2: Contenitori (Containers)
+### **Livello 2: Contenitori (Containers)**
 
 Il "Sistema di Gestione Campagne Pubblicitarie Laravel" è composto da diversi contenitori principali, che sono unità deployabili o eseguibili in modo indipendente.
 
 **Descrizione dei Contenitori:**
 
-1.  **Applicazione Web (WebApp):**
-    * **Descrizione:** È il componente server-side principale, un'applicazione web monolitica sviluppata con il framework Laravel. Gira su un web server come Nginx o Apache.
-    * **Tecnologie Chiave:** PHP (versione 8.x come da type hinting moderni), Laravel Framework, Blade (template engine), Eloquent (ORM).
-    * **Responsabilità Principali:**
-        * Fornire l'interfaccia utente (UI) dinamica agli Inserzionisti attraverso pagine HTML generate da Blade, arricchite con CSS e JavaScript per l'interattività.
-        * Gestire l'autenticazione e l'autorizzazione degli utenti (sfruttando i componenti di Laravel come Fortify e Jetstream, come si evince dal modello `User`).
-        * Implementare tutta la logica di business relativa alla creazione, modifica, targeting, avvio/pausa e monitoraggio delle campagne pubblicitarie.
-        * Orchestrare le interazioni con gli altri contenitori (Database, File Storage) e con i sistemi esterni (Google Places API, Stripe API).
-        * Esporre eventuali API interne necessarie per funzionalità client-side avanzate o per future estensioni.
-        * Gestire il tracciamento dei dati dei `GuestUser`.
+1. **Applicazione Web (WebApp):**  
+   * **Descrizione:** È il componente server-side principale, un'applicazione web monolitica sviluppata con il framework Laravel 12.x su PHP 8.2+. Gira su un web server (es. Nginx/Apache).  
+   * **Tecnologie Chiave:** PHP 8.2+, Laravel 12.x Framework, Blade, Eloquent, Livewire, Jetstream, Sanctum, ipinfo/ipinfo, stripe/stripe-php, intervention/image (usata per manipolazione immagini), Flysystem (per S3).  
+   * **Responsabilità Principali:**  
+     * Servire le interfacce utente (HTML, CSS, JS) per Inserzionisti (dashboard, gestione campagne/pagamenti/profilo) e Utenti Visitatori (visualizzazione annunci).  
+     * Gestire l'autenticazione, l'autorizzazione e la gestione del profilo utente (via Jetstream).  
+     * Implementare la logica di business per la creazione, validazione, gestione e monitoraggio delle campagne.  
+     * Eseguire la logica di erogazione degli annunci, matching del targeting e tracciamento (impressioni/click).  
+     * Orchestrare le interazioni con il Database, AWS S3, Stripe, Google Places API e IPinfo API.  
+     * Mettere in coda Job per l'elaborazione asincrona (es. CreateDailyPerformances).  
+2. **Database Relazionale (Database):**  
+   * **Descrizione:** Un server RDBMS che ospita il database SQL.  
+   * **Tecnologie Chiave:** Esempi comuni includono MySQL, PostgreSQL.  
+   * **Responsabilità Principali:**  
+     * Persistenza strutturata di tutti i dati dell'applicazione (users, guest\_users, creatives, campaigns, daily\_performance, fundings).  
+     * Garantire l'integrità dei dati (PK, FK, indici, vincoli).  
+     * Eseguire query generate dall'Applicazione Web tramite Eloquent.  
+3. **File Storage (AWS S3):**  
+   * **Descrizione:** Servizio di cloud storage scalabile per file binari.  
+   * **Tecnologie Chiave:** AWS S3.  
+   * **Responsabilità Principali:**  
+     * Memorizzare in modo duraturo e scalabile i file delle creatività pubblicitarie caricati dagli Inserzionisti.  
+     * Servire questi file all'occorrenza (es. per visualizzarli nelle preview delle campagne o nell'erogazione degli annunci).  
+4. **Coda (Queue):**  
+   * **Descrizione:** Sistema di gestione delle code per l'elaborazione asincrona dei Job.  
+   * **Tecnologie Chiave:** Può essere implementato con Redis, Database, SQS, Beanstalkd, etc. (dipende dalla configurazione Laravel). Il codice mostra l'uso dei Job (ShouldQueue).  
+   * **Responsabilità Principali:**  
+     * Eseguire compiti in background che non richiedono una risposta immediata all'utente (es. la creazione iniziale dei record DailyPerformance per una nuova campagna).
 
-2.  **Database Relazionale (Database):**
-    * **Descrizione:** Un server di database che ospita un database SQL, responsabile della persistenza di tutti i dati strutturati dell'applicazione.
-    * **Tecnologie Chiave:** Un sistema di gestione di database relazionale (RDBMS) come MySQL, PostgreSQL, o SQLite (quest'ultimo spesso usato come default da Laravel per lo sviluppo).
-    * **Responsabilità Principali:**
-        * Memorizzare in modo sicuro, strutturato e persistente tutte le informazioni dell'applicazione, incluse le tabelle `users`, `guest_users`, `creatives`, `campaigns`, `daily_performance`, e `fundings`.
-        * Garantire l'integrità dei dati attraverso l'uso di chiavi primarie, chiavi esterne, vincoli di unicità e altri vincoli definiti nelle migration.
-        * Eseguire query complesse richieste dall'Applicazione Web tramite l'ORM Eloquent.
+### **Livello 3: Componenti (Components)**
 
-3.  **File Storage (Storage):**
-    * **Descrizione:** Un sistema dedicato alla memorizzazione dei file binari, in questo caso principalmente le immagini delle creatività pubblicitarie caricate dagli Inserzionisti.
-    * **Tecnologie Chiave:** Basandosi sul codice (`asset('storage/...')` e l'uso di `enctype="multipart/form-data"` nei form di upload), è molto probabile che si tratti del filesystem locale del server su cui gira l'Applicazione Web. Specificamente, la directory `storage/app/public` di Laravel, che viene resa accessibile pubblicamente tramite un link simbolico a `public/storage`. In un ambiente di produzione scalabile, questo potrebbe essere sostituito o affiancato da un servizio di cloud storage (es. AWS S3, Google Cloud Storage), ma il codice attuale punta a una soluzione basata su filesystem locale.
-    * **Responsabilità Principali:**
-        * Memorizzare in modo sicuro i file delle creatività (immagini).
-        * Permettere all'Applicazione Web di scrivere nuovi file (upload) e di leggerli per servirli come parte degli annunci visualizzati agli Utenti Visitatori.
-
-### Livello 3: Componenti (Components)
-
-All'interno del contenitore "Applicazione Web", possiamo identificare diversi componenti logici principali, che collaborano per fornire le funzionalità del sistema. Questi sono tipicamente moduli o insiemi di classi con responsabilità specifiche, seguendo i pattern comuni di Laravel.
+All'interno del contenitore "Applicazione Web", possiamo identificare diversi componenti logici principali che collaborano per fornire le funzionalità del sistema.
 
 **Descrizione dei Componenti (all'interno dell'Applicazione Web):**
 
-* **Browser dell'Inserzionista (Logica Client-side):**
-    * **Tecnologia:** HTML, CSS, JavaScript (eseguito nel browser dell'utente).
-    * **Responsabilità:** Non è un componente server-side, ma rappresenta la logica eseguita sul client. Interagisce con i componenti server-side. Renderizza l'interfaccia utente ricevuta dal server, gestisce le interazioni dell'utente (click, input nei form), esegue validazioni client-side per migliorare l'esperienza utente (es. controllo della dimensione dei file immagine prima dell'upload, validazione del formato delle date), e gestisce chiamate JavaScript a API esterne (come Google Places Autocomplete API per il campo `geo_targeting`).
+* **Browser dell'Inserzionista / Utente Visitatore (Logica Client-side):**  
+  * **Tecnologia:** HTML, CSS, JavaScript, Livewire (frontend).  
+  * **Responsabilità:** Esecuzione nel browser. Renderizza l'UI, gestisce interazioni utente, validazioni client-side, chiamate a API esterne (Google Places Autocomplete) e comunicazioni dinamiche con i componenti Livewire sul server.  
+* **Gestore Routing (routes/web.php, routes/api.php):**  
+  * **Tecnologia:** Sistema di routing di Laravel.  
+  * **Responsabilità:** Mappare richieste HTTP a Controller o Componenti Livewire. Definisce gli endpoint (/dashboard, /advertisers/campaigns, /serve/match, /serve/redirect, /payment, etc.).  
+* **Middleware (App\\Http\\Middleware\\...):**  
+  * **Tecnologia:** Classi Middleware di Laravel.  
+  * **Responsabilità:** Filtrare richieste per autenticazione, protezione CSRF, gestione sessioni, ecc., prima che raggiungano la logica applicativa principale.  
+* **Controller (App\\Http\\Controllers\\...):**  
+  * **Tecnologia:** Classi Controller PHP.  
+  * **Responsabilità:** Ricevono input, orchestrano le azioni, interagiscono con Modelli, Servizi e Componenti Livewire, e preparano i dati per le Viste.  
+    * AdvertiserController: Gestisce dashboard, CRUD campagne, aggiornamento impostazioni utente, statistiche. Invia Job alla Coda.  
+    * PaymentController: Gestisce visualizzazione finanziamenti, integrazione checkout/callback Stripe.  
+    * GuestController: Gestisce visualizzazione homepage/categorie per utenti non loggati, si basa su AdServeController per ottenere annunci.  
+    * AdServeController: Gestisce la logica principale di erogazione annunci: tracciamento GuestUser, matching targeting, incremento impressioni/click, decremento saldo utente, reindirizzamento.  
+* **Componenti Livewire (App\\Livewire\\...):**  
+  * **Tecnologia:** Classi PHP e file Blade di Livewire.  
+  * **Responsabilità:** Gestiscono stato e logica di porzioni dinamiche dell'UI, facilitando interazioni reattive tra frontend e backend senza AJAX manuale. (Specifici componenti non visibili nel codice fornito, ma la dipendenza indica il loro uso).  
+* **Modelli Eloquent (App\\Models\\...):**  
+  * **Tecnologia:** ORM Eloquent.  
+  * **Responsabilità:** Interazione con il Database. Rappresentano le tabelle come oggetti, gestiscono relazioni, query (es. Campaign::where(...)), mutators/accessors (Creative::getUrl(), User::casts()), e casting di dati (es. Campaign::$casts\['keyword\_targeting'\]).  
+* **Servizi Applicativi / Logica di Business Ausiliaria:**  
+  * **Tecnologia:** Classi PHP, Traits, Jobs, Policies, Actions.  
+  * **Responsabilità:** Incapsulano logica di dominio specifica.  
+    * **Logica di Ad Serving & Targeting:** La logica complessa dentro AdServeController per identificare utenti, applicare criteri di targeting (geo, ISP, OS, browser, lingua, keyword), tracciare eventi (impressioni, click) e gestire il bilancio. Utilizza ipinfo/ipinfo e Laravel\\Jetstream\\Agent.  
+    * **Logica di Gestione Campagne:** Logica per validazione, salvataggio, aggiornamento, cancellazione e cambio stato delle campagne (dentro AdvertiserController). Include l'interazione con il sistema di storage S3 per le creatività (Storage::disk('s3')).  
+    * **Logica di Integrazione Pagamenti:** Logica per interfacciarsi con Stripe (stripe/stripe-php), creare sessioni, gestire successi/fallimenti e aggiornare i record Funding e il saldo utente.  
+    * **Logica di Statistiche:** Aggregazione e calcolo di metriche di performance (AdvertiserController::showStatistics).  
+    * **Processi in Background:** Job come CreateDailyPerformances per eseguire compiti asincroni come la creazione dei record iniziali di performance giornaliera per una nuova campagna.  
+    * **Gestione Creatività:** Upload e recupero URL da S3 (Creative::getUrl(), Storage::disk('s3')), potenzialmente manipolazione immagini con intervention/image.
 
-* **Viste Blade (`resources/views/...`):**
-    * **Tecnologia:** Template engine Blade di Laravel.
-    * **Responsabilità:** Componenti responsabili della presentazione. Generano dinamicamente l'HTML che viene inviato al browser dell'Inserzionista. Ricevono dati dai Controller e li visualizzano in modo strutturato, utilizzando la sintassi di Blade per includere logica di visualizzazione, cicli, condizionali e layout. Definiscono i form HTML per la raccolta dell'input utente.
+### **Livello 4: Codice (Code)**
 
-* **Gestore Routing (`routes/web.php`, `routes/api.php`):**
-    * **Tecnologia:** Sistema di routing di Laravel.
-    * **Responsabilità:** Mappare le richieste HTTP in entrata (definite da URL e metodo HTTP) ai metodi appropriati dei Controller. Definisce gli endpoint dell'applicazione.
+Questo livello si riferisce all'implementazione concreta nei file sorgente.
 
-* **Middleware (`App/Http/Middleware/*`, `App/Http/Kernel.php`):**
-    * **Tecnologia:** Classi Middleware di Laravel.
-    * **Responsabilità:** Agiscono come filtri per le richieste HTTP. Vengono eseguiti prima o dopo che una richiesta raggiunga il Controller designato. Utilizzati per compiti trasversali come l'autenticazione (verificare se un utente è loggato), la protezione CSRF (Cross-Site Request Forgery), la gestione delle sessioni, la verifica dei ruoli utente, e la manipolazione degli header della richiesta/risposta.
+**Esempi di Elementi Chiave dal Codice Fornito:**
 
-* **Controller (`App/Http/Controllers/...`):**
-    * **Tecnologia:** Classi Controller PHP di Laravel.
-    * **Responsabilità:** Ricevono l'input dalle richieste HTTP (inoltrate dal Gestore Routing e processate dai Middleware). Orchestrano le azioni da compiere: interagiscono con i Modelli Eloquent per recuperare o persistere dati nel Database, possono invocare Servizi Applicativi per logica di business più complessa, e infine passano i dati necessari alle Viste Blade per il rendering della risposta. Basandosi sui file forniti, si possono identificare gruppi logici di controller:
-        * `AuthController` (implicito dall'uso di Laravel Fortify/Jetstream): gestisce la registrazione, il login, il logout, la gestione del profilo utente, e la funzionalità di autenticazione a due fattori.
-        * `CampaignController`: gestisce le operazioni CRUD (Create, Read, Update, Delete) per le campagne pubblicitarie, inclusa la gestione dello stato (attiva, in pausa), l'associazione delle creatività e la configurazione del targeting.
-        * `PaymentController` (o `FundingController`): gestisce la visualizzazione dello storico dei finanziamenti, l'inizializzazione del processo di checkout con il sistema di pagamento esterno (Stripe), e la gestione delle relative callback o webhook.
-        * `SettingsController`: permette agli utenti di aggiornare le proprie informazioni personali e aziendali.
-        * `DashboardController`: raccoglie e prepara i dati aggregati (statistiche sulle campagne, saldo dell'account) per la visualizzazione nella dashboard principale dell'inserzionista.
-
-* **Modelli Eloquent (`App/Models/...`):**
-    * **Tecnologia:** ORM (Object-Relational Mapper) Eloquent di Laravel.
-    * **Responsabilità:** Rappresentano le tabelle del Database come oggetti PHP, fornendo un'interfaccia orientata agli oggetti per interagire con i dati. Gestiscono le query al database, definiscono le relazioni tra le diverse entità (es. un `User` "ha molte" `Campaigns`), e possono includere logica per la manipolazione degli attributi (mutators, accessors, casting di tipi, gestione degli attributi `fillable` e `hidden`). I modelli identificati sono: `User`, `GuestUser`, `Creative`, `Campaign`, `DailyPerformance`, `Funding`.
-
-* **Servizi Applicativi / Logica di Business Ausiliaria:**
-    * **Tecnologia:** Classi PHP standard, Traits, Event Listeners, Jobs, ecc.
-    * **Responsabilità:** Incapsulano logica di business specifica, complessa o riutilizzabile che non appartiene strettamente a un singolo Controller o Modello, promuovendo un design più pulito e testabile. Esempi basati sul codice:
-        * **Integrazione Google Places API:** Potrebbe esistere una classe servizio dedicata a gestire le chiamate all'API di Google Places, l'interpretazione delle risposte e la formattazione dei dati per il targeting geografico.
-        * **Integrazione Stripe API:** Similmente, un servizio potrebbe gestire la creazione di sessioni di checkout Stripe, la gestione sicura delle chiavi API, e il processamento dei webhook inviati da Stripe per confermare pagamenti riusciti o falliti, aggiornando di conseguenza i record `Fundings` e il `balance` dell'utente.
-        * Altra logica di dominio, come calcoli di statistiche avanzate (oltre al semplice CTR), gestione di notifiche, ecc.
-
-### Livello 4: Codice (Code)
-
-Questo livello si riferisce all'implementazione concreta e ai dettagli delle classi, metodi, funzioni e template che costituiscono i componenti descritti al Livello 3. I file PHP, le migration e i file Blade forniti sono gli artefatti principali di questo livello. Una descrizione esaustiva a questo livello equivarrebbe a una documentazione a livello di codice (es. generata con PHPDoc) e all'analisi dettagliata di ogni file.
-
-**Esempi di Elementi Chiave del Codice Fornito a questo Livello:**
-
-* **Models (`App/Models/...`):**
-    * `User.php`: Definisce l'entità `User` estendendo `Illuminate\Foundation\Auth\User` (quindi è `Authenticatable`). Include traits da Laravel Sanctum (`HasApiTokens`), Laravel Jetstream (`HasProfilePhoto`, `TwoFactorAuthenticatable`), e Eloquent (`HasFactory`, `Notifiable`). Definisce gli attributi `fillable` (per l'assegnazione di massa sicura), `hidden` (per escludere campi sensibili dalla serializzazione JSON, come `password` e token), `casts` (per la conversione automatica dei tipi di dato, es. `email_verified_at` a `datetime`, `password` a `hashed`), e `appends` (per includere attributi calcolati come `profile_photo_url` nell'array/JSON del modello).
-    * `GuestUser.php`: Un modello Eloquent semplice per la tabella `guest_users`, con i suoi campi `fillable`.
-    * Altri modelli (`Creative.php`, `Campaign.php`, `DailyPerformance.php`, `Funding.php`) definiscono la loro struttura e le relazioni con altri modelli attraverso metodi come `belongsTo`, `hasMany`, ecc. (anche se non esplicitamente mostrati, sono standard in Laravel per le FK definite nelle migration).
-
-* **Migrations (nella directory `database/migrations/`):**
-    * Ogni file di migration (es. `...create_campaigns_table.php`) contiene una classe che estende `Illuminate\Database\Migrations\Migration`. Il metodo `up()` definisce lo schema della tabella usando `Illuminate\Support\Facades\Schema` e il `Blueprint` per specificare colonne (es. `$table->id()`, `$table->string('name')`, `$table->enum('status', [...])`, `$table->foreignId('user_id')->constrained()->onDelete('cascade')`). Il metodo `down()` definisce come annullare la migrazione (tipicamente `Schema::dropIfExists('nome_tabella')`). Queste migration sono fondamentali per la gestione versionata dello schema del database.
-
-* **Blade Views (`resources/views/...`):**
-    * `advertisers/campaigns/create.blade.php`: Un esempio di vista complessa. Utilizza `@extends` per l'ereditarietà del layout, `@section` per definire contenuti specifici. Mostra form HTML con direttive Blade come `@csrf` (per la protezione CSRF), `old('nome_campo', $valore_default)` (per ripopolare i form dopo validazioni fallite), `@error('nome_campo') ... @enderror` (per visualizzare messaggi di errore di validazione). Include l'attributo `enctype="multipart/form-data"` nel tag `<form>` per abilitare l'upload di file. Contiene sezioni `@push('styles')` e `@push('scripts')` per aggiungere CSS e JavaScript specifici per la pagina, inclusa l'integrazione con librerie esterne (Leaflet, Google Maps API) e script custom per validazioni client-side (controllo dimensione file, confronto date) e interazioni dinamiche.
-    * `advertisers/payment/index.blade.php`: Mostra dati utente (`Auth::user()->balance`), itera su collezioni (`@forelse($fundings as $funding) ... @empty ... @endforelse`), formatta numeri e date, e include componenti modali di Bootstrap per funzionalità interattive come l'aggiunta di fondi.
-    * Altri file Blade (`advertisers/index.blade.php`, `advertisers/settings/index.blade.php`, `payment/stripe_checkout.blade.php`) seguono pattern simili per presentare dati e raccogliere input.
-
-* **JavaScript (incorporato nei file Blade tramite tag `<script>` o sezioni `@push('scripts')`):**
-    * Il codice fornito mostra un uso significativo di JavaScript per:
-        * **Validazione Client-Side:** Controllo della data di fine rispetto alla data di inizio, verifica della dimensione massima dei file immagine.
-        * **Integrazione API Esterne:** Utilizzo della Google Places Autocomplete API per il campo di input del targeting geografico (`countryInput`).
-        * **Manipolazione DOM e UX:** Gestione di modali (Bootstrap), aggiornamenti dinamici dell'interfaccia.
-        * **Librerie Grafiche:** (Non nel codice fornito ma spesso presenti in dashboard) Chart.js o simili per visualizzare grafici di performance, e Leaflet per mappe (come suggerito dai `@push` in alcune viste, anche se lo script specifico della mappa di Cuneo era un esempio statico).
-
-Questa analisi testuale fornisce una comprensione dell'architettura e dei dettagli implementativi del sistema, basandosi esclusivamente sul codice sorgente che hai condiviso.
+* **Controllers:**  
+  * AdServeController::match(Request $request): Implementa la logica di targeting multicriterio concatenando clausole where e orWhere con controlli sui campi del GuestUser.  
+  * AdvertiserController::createCampaign(Request $request): Include validazione ($request-\>validate(\[...\])), gestione upload file a S3 (Storage::disk('s3')-\>putFileAs(...)), creazione record Creative e Campaign, e dispatching del Job CreateDailyPerformances.  
+  * PaymentController::checkout(Request $request): Utilizza Stripe::setApiKey(...) e Session::create(...) per avviare il flusso di pagamento Stripe, salvando la session\_id nel record Funding.  
+* **Models:**  
+  * Campaign.php: Definizione delle enum per status, device, ad\_category, os\_targeting, browser\_targeting; casting a array per keyword\_targeting; relazioni belongsTo per User e Creative, hasMany per DailyPerformance.  
+  * Creative.php: Relazione belongsTo con User, metodo getUrl() usando Storage::disk('s3')-\>url($this-\>path).  
+  * GuestUser.php: Definizione dei campi, inclusi gli enum e il campo jsonb per keywords.  
+  * User.php: Uso dei traits Jetstream (TwoFactorAuthenticatable, HasProfilePhoto) e Sanctum (HasApiTokens); definizione degli attributi fillable, hidden, appends, e del casting della password a hashed.  
+* **Migrations:**  
+  * ...create\_campaigns\_table.php: Definizione esplicita di tipi (decimal, date, enum, text), nullable fields (geo\_targeting, creative\_id, daily\_budget), e foreign keys con onDelete.  
+  * ...create\_guest\_users\_table.php: Definizione del campo jsonb('keywords') con valore di default '\[\]'.  
+* **Jobs:**  
+  * CreateDailyPerformances.php: Implementa ShouldQueue; il metodo handle() crea un nuovo record DailyPerformance con conteggi iniziali a zero per la campagna passata nel costruttore.  
+* **Blade Views:**  
+  * advertisers.campaigns.create.blade.php: Utilizzo di @extends('layouts.advertiser'), @section('content'), direttive @csrf, @method('PUT') (condizionale), helper old(), gestione errori @error, attributo enctype="multipart/form-data" per l'upload, e @push('scripts') per includere JS specifico.
